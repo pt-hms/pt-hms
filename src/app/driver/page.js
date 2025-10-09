@@ -41,7 +41,7 @@ export default function Page() {
             className="w-full h-full object-cover rounded-2xl"
           />
         ) : (
-          <p className="text-black font-bold text-center text-lg">
+          <p className="text-white font-bold text-center text-lg">
             PILIH FILE ANDA<br />DISINI
           </p>
         )}

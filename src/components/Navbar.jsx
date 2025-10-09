@@ -8,9 +8,9 @@ export default function BottomNavbar() {
   const router = useRouter();
 
   const navItems = [
-    { href: "/driver/history", icon: <Icon icon="material-symbols:history-rounded" width={26} height={26} />, label: "Riwayat" },
-    { href: "/driver", icon: <Icon width={28} height={28} icon="material-symbols:upload"/>, label:"Unggah" },
-    { href: "/driver/profile", icon: <Icon icon="iconamoon:profile-fill" width={26} height={26} />, label: "Akun"}, 
+    { href: "/driver/history", icon: <Icon icon="material-symbols:history-rounded" width={25} height={25} />, label: "Riwayat" },
+    { href: "/driver", icon: <Icon width={24} height={24} icon="material-symbols:upload"/>, label:"Unggah" },
+    { href: "/driver/profile", icon: <Icon icon="iconamoon:profile-fill" width={25} height={25} />, label: "Akun"}, 
   ];
 
   const handleUploadClick = () => {
@@ -22,7 +22,7 @@ export default function BottomNavbar() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[#AE8B56] flex justify-around items-center z-50 shadow-inner">
+    <nav className="fixed bottom-0 left-0 right-0 bg-[#AE8B56] flex justify-around items-center z-50 shadow-inner ">
       {navItems.map((item, index) => {
         const isActive = pathname === item.href;
 
@@ -32,10 +32,10 @@ export default function BottomNavbar() {
               key={item.href}
               onClick={handleUploadClick}
               href={item.href}
-              className="relative -top-5 flex flex-col items-center text-white "
+              className="relative -top-4 flex flex-col items-center text-white "
             >
-            <div className="bg-[#AE8B56] rounded-full p-4 shadow-lg">
-              <div className="bg-white rounded-full p-4 shadow-md">
+            <div className="bg-[#AE8B56] rounded-full p-3 shadow-lg">
+              <div className="bg-white rounded-full p-3 shadow-md">
                 <div className="text-[#AE8B56]">{item.icon}</div>
               </div>
             </div>
@@ -48,12 +48,10 @@ export default function BottomNavbar() {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex flex-col items-center gap-1 text-white ${isActive ? "opacity-100" : "opacity-70"}`}
+            className={`flex flex-col items-center gap-1 rounded-xl p-2 text-white w-18 ${isActive ? "opacity-100 bg-white" : "opacity-70 text-white"}`}
           >
-            <div className="bg-white rounded-full p-2">
-              <div className="text-[#AE8B56]">{item.icon}</div>
-            </div>
-             <span className="text-[12px] font-semibold">{item.label}</span>
+              <div className={`${isActive ? "text-[#AE8B56]" : "text-white"}`}>{item.icon}</div>
+             <span className={`${isActive ? "text-[12px] font-semibold text-[#AE8B56]" : "text-white" }`}>{item.label}</span>
           </Link>
         );
       })}

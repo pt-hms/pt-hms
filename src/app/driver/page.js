@@ -1,18 +1,22 @@
 "use client"
 import { useRef, useState, useEffect } from "react";
 
-export default function page() {
+export default function Page() {
   const fileInputRef = useRef(null);
   const [preview, setPreview] = useState(null);
 
-  // Tangkap event dari Navbar (jika user klik tombol unggah di navbar)
   useEffect(() => {
     const handleTriggerUpload = () => {
-      fileInputRef.current?.click();
+      if (preview) {
+        alert("File sudah dipilih!");
+      } else {
+        fileInputRef.current?.click();
+      }
     };
+
     window.addEventListener("trigger-upload", handleTriggerUpload);
     return () => window.removeEventListener("trigger-upload", handleTriggerUpload);
-  }, []);
+  }, [preview]);
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];

@@ -31,7 +31,6 @@ export default function page() {
   });
 
   const handleSubmit = (values) => {
-    console.log("Data login:", values);
     alert(`Login dengan nomor: ${values.phone}`);
     //fetch login ke be
   };

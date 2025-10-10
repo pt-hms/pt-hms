@@ -1,66 +1,79 @@
 "use client";
-import { useState } from "react";
 
-export default function PrintPage() {
-   const [status, setStatus] = useState("Belum terhubung");
+import { TextInput, Button, Paper, Container, Title, Text, Center, Group } from "@mantine/core";
 
-   const detectDevice = () => {
-      const ua = navigator.userAgent.toLowerCase();
-      if (/android/i.test(ua)) return "android";
-      if (/iphone|ipad|ipod/i.test(ua)) return "ios";
-      return "desktop";
-   };
-
-   const connectPrinter = async () => {
-      const deviceType = detectDevice();
-      setStatus(`Mendeteksi perangkat: ${deviceType}`);
-
-      try {
-         if (deviceType === "desktop") {
-            // === Web Serial API === (untuk Laptop / PC)
-            const port = await navigator.serial.requestPort();
-            await port.open({ baudRate: 9600 });
-            const writer = port.writable.getWriter();
-
-            const text = "KJHMS\n15\nJUTA\n";
-            const encoder = new TextEncoder();
-            await writer.write(encoder.encode(text + "\n\n\n"));
-
-            writer.releaseLock();
-            await port.close();
-            setStatus("✅ Berhasil mencetak di desktop!");
-         } else {
-            // === Web Bluetooth === (untuk Android/iOS)
-            const device = await navigator.bluetooth.requestDevice({
-               acceptAllDevices: true,
-               optionalServices: [0xffe0], // Service umum untuk printer bluetooth
-            });
-
-            setStatus(`🔗 Terhubung ke ${device.name || "Printer"}`);
-
-            const server = await device.gatt.connect();
-            const service = await server.getPrimaryService(0xffe0);
-            const characteristic = await service.getCharacteristic(0xffe1);
-
-            const text = "KJHMS\n15\nJUTA\n";
-            const encoder = new TextEncoder();
-            await characteristic.writeValue(encoder.encode(text + "\n\n\n"));
-
-            setStatus("✅ Berhasil mencetak via Bluetooth!");
-         }
-      } catch (err) {
-         console.error(err);
-         setStatus("❌ Gagal mencetak: " + err.message);
+export default function print() {
+   const handleConnectAndPrint = () => {
+      if (typeof PrintPlugin === "undefined") {
+         console.error("PrintPlugin is not loaded yet.");
+         document.getElementById("status").textContent = "Error: Printing library not loaded.";
+         return;
       }
+
+      let printer = new PrintPlugin("58mm");
+
+      printer.connectToPrint({
+         onReady: async (print) => {
+            try {
+               document.getElementById("status").textContent = "Printing...";
+
+               await print.writeText("PT HMS", { align: "center", bold: true });
+               await print.writeText("Bandara Soekarno-Hatta", { align: "center" });
+               await print.writeDashLine();
+               await print.writeText("Jumat 10/10/25 22:40:24", { align: "center" });
+               await print.writeText("001", { align: "center", bold: true, size: "double" });
+               await print.writeDashLine();
+               await print.writeText("Berikut nomor antrean anda", { align: "center" });
+               await print.writeLineBreak();
+               await print.writeLineBreak();
+               await print.writeLineBreak();
+
+               document.getElementById("status").textContent = "Print successful!";
+            } catch (error) {
+               console.error("Printing failed:", error);
+               document.getElementById("status").textContent = `Printing failed: ${error.message}`;
+            }
+         },
+         onFailed: (message) => {
+            console.log(message);
+            document.getElementById("status").textContent = `Failed: ${message}`;
+         },
+      });
    };
 
    return (
-      <div className="flex flex-col items-center justify-center min-h-screen text-center">
-         <h1 className="text-2xl font-bold mb-4">🖨️ Tes Print Universal</h1>
-         <button onClick={connectPrinter} className="bg-blue-600 text-white px-4 py-2 rounded-lg">
-            Hubungkan & Cetak
-         </button>
-         <p className="mt-4">{status}</p>
-      </div>
+      <>
+         {/* <main style={{ padding: "20px", fontFamily: "sans-serif" }}>
+            <h1>Bluetooth Print</h1>
+            <button id="connect" onClick={handleConnectAndPrint}>
+               Connect and Print
+            </button>
+            <p id="status"></p>
+         </main> */}
+
+         <Container size="xs" style={{ minHeight: "100vh", display: "flex", alignItems: "center" }}>
+            <Paper withBorder shadow="md" p="xl" radius="md" style={{ width: "100%" }}>
+               <Title order={2} ta="center" mb="lg" style={{ color: "#E9AC50" }}>
+                  Cetak Antrean
+               </Title>
+
+               <Center>
+                  <Paper withBorder p="xl" radius="md" ta="center" mb="xl" bg="gray.0">
+                     <Text size="lg" c="dimmed">
+                        Nomor Berikutnya
+                     </Text>
+                     <Text fz={60} fw={700} style={{ color: "#E9AC50" }}>
+                        001
+                     </Text>
+                  </Paper>
+               </Center>
+
+               <Button fullWidth color="#E9AC50" variant="filled" size="lg" radius="md" onClick={handleConnectAndPrint}>
+                  Cetak
+               </Button>
+               <p id="status" className="color-[#E9AC50]"></p>
+            </Paper>
+         </Container>
+      </>
    );
 }

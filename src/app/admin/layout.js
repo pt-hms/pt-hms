@@ -5,19 +5,17 @@ import DashboardNavbar from '@/components/DashboardNavbar'
 import Sidebar from '@/components/Sidebar'
 import { useDisclosure, useHotkeys } from "@mantine/hooks";
 import Head from "next/head";
+import { usePathname } from 'next/navigation'
 
 export default function Dashboard({ children, title }) {
     const [opened, { toggle }] = useDisclosure();
-    // const [darkMode, setDarkMode] = useState(false);
-    // useHotkeys([["ctrl+k", () => setDarkMode((prev) => !prev)]]);
+    const pathname = usePathname();
 
-    // const theme = localStorage.getItem("theme");
-    // useEffect(() => {
-    //     setDarkMode(theme ? true : false);
-    // }, []);
-    // useEffect(() => {
-    //     localStorage.setItem("theme", darkMode ? 1 : "");
-    // }, [darkMode]);
+    const pageTitle = {
+        "/admin/driver": "Driver",
+        "/admin/sda": "Dashboard",
+        "/admin/order": "Riwayat Ritase",
+    }[pathname] || "KJHMS";
     return (
         <AppShell
             padding="md"
@@ -34,25 +32,21 @@ export default function Dashboard({ children, title }) {
                 // transitionDuration={"2000ms"}
                 visibleFrom="sm"
                 withBorder={false}
-            // className={`${darkMode ? "dark" : ""}`}
             >
                 <Sidebar />
             </AppShell.Navbar>
 
             <AppShell.Main
-                className="bg-slate-100 min-h-screen p-6"
-            // className={`${darkMode ? "dark bg-dashboard-dark" : "bg-dashboard"
-            //     }`}
+                className={`bg-slate-100 min-h-screen p-6`}
             >
                 <Head title={title} />
                 <div className="w-full h-12 bg-white rounded-xl !shadow-normal flex justify-between items-center mb-5 dark:bg-slate-800 dark:text-white transition duration-200">
                     <DashboardNavbar
                         toggle={toggle}
                         opened={opened}
-                    // setDarkMode={setDarkMode}
-                    // darkMode={darkMode}
                     />
                 </div>
+                <h1 className="text-xl font-medium mb-5">{pageTitle}</h1>
                 <div className="bg-white rounded-xl shadow p-6">
                     {children}
                 </div>

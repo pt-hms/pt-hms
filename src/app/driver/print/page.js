@@ -1,45 +1,66 @@
 "use client";
+import { useState } from "react";
 
 export default function PrintPage() {
-   const handlePrint = async () => {
+   const [status, setStatus] = useState("Belum terhubung");
+
+   const detectDevice = () => {
+      const ua = navigator.userAgent.toLowerCase();
+      if (/android/i.test(ua)) return "android";
+      if (/iphone|ipad|ipod/i.test(ua)) return "ios";
+      return "desktop";
+   };
+
+   const connectPrinter = async () => {
+      const deviceType = detectDevice();
+      setStatus(`Mendeteksi perangkat: ${deviceType}`);
+
       try {
-         // Minta user pilih printer yang sudah terhubung via Bluetooth (pair dulu dari OS)
-         const port = await navigator.serial.requestPort();
-         await port.open({ baudRate: 9600 });
+         if (deviceType === "desktop") {
+            // === Web Serial API === (untuk Laptop / PC)
+            const port = await navigator.serial.requestPort();
+            await port.open({ baudRate: 9600 });
+            const writer = port.writable.getWriter();
 
-         const writer = port.writable.getWriter();
-         const encoder = new TextEncoder();
+            const text = "KJHMS\n15\nJUTA\n";
+            const encoder = new TextEncoder();
+            await writer.write(encoder.encode(text + "\n\n\n"));
 
-         // Isi tiket
-         const text = `
-KJHMS
+            writer.releaseLock();
+            await port.close();
+            setStatus("✅ Berhasil mencetak di desktop!");
+         } else {
+            // === Web Bluetooth === (untuk Android/iOS)
+            const device = await navigator.bluetooth.requestDevice({
+               acceptAllDevices: true,
+               optionalServices: [0xffe0], // Service umum untuk printer bluetooth
+            });
 
-15
+            setStatus(`🔗 Terhubung ke ${device.name || "Printer"}`);
 
-JUTA
+            const server = await device.gatt.connect();
+            const service = await server.getPrimaryService(0xffe0);
+            const characteristic = await service.getCharacteristic(0xffe1);
 
+            const text = "KJHMS\n15\nJUTA\n";
+            const encoder = new TextEncoder();
+            await characteristic.writeValue(encoder.encode(text + "\n\n\n"));
 
-
-\n\n\n`; // newline ekstra biar panjang
-
-         await writer.write(encoder.encode(text));
-
-         writer.releaseLock();
-         await port.close();
-
-         alert("✅ Tiket berhasil dikirim ke printer!");
+            setStatus("✅ Berhasil mencetak via Bluetooth!");
+         }
       } catch (err) {
-         console.error("Print error:", err);
-         alert("Gagal mencetak: " + err.message);
+         console.error(err);
+         setStatus("❌ Gagal mencetak: " + err.message);
       }
    };
 
    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-         <h1 className="text-2xl font-bold mb-6">Cetak Tiket</h1>
-         <button onClick={handlePrint} className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
-            🖨️ Print Tiket
+      <div className="flex flex-col items-center justify-center min-h-screen text-center">
+         <h1 className="text-2xl font-bold mb-4">🖨️ Tes Print Universal</h1>
+         <button onClick={connectPrinter} className="bg-blue-600 text-white px-4 py-2 rounded-lg">
+            Hubungkan & Cetak
          </button>
+         <p className="mt-4">{status}</p>
       </div>
    );
 }

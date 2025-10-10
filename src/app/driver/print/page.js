@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Paper, Container, Title, Text, Center } from "@mantine/core";
 
 export default function SimpleQueuePage() {
-   // State untuk data aplikasi
+   // State untuk data aplikasi (tidak ada perubahan di sini)
    const [queueNumber, setQueueNumber] = useState(0);
    const [isLoading, setIsLoading] = useState(false);
    const [status, setStatus] = useState("Siap untuk mencetak...");
@@ -25,7 +24,7 @@ export default function SimpleQueuePage() {
       return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
    };
 
-   // Fungsi utama untuk mencetak
+   // Fungsi utama untuk mencetak (tidak ada perubahan logika)
    const handlePrint = () => {
       if (typeof PrintPlugin === "undefined") {
          setStatus("Error: Pustaka printer belum siap.");
@@ -34,12 +33,10 @@ export default function SimpleQueuePage() {
 
       setIsLoading(true);
 
-      // Tetapkan nilai judul, subjudul, dan footer langsung di sini
-      const title = "AYAM RADIT";
-      const subtitle = "Depan Lippo";
-      const footer = "Terima kasih sudah mengantri";
+      const title = "PT HMS";
+      const subtitle = "Bandara Soekarno-Hatta";
+      const footer = "Berikut kode antrean anda";
 
-      // Logika nomor antrean tetap sama
       const newQueueNumber = queueNumber + 1;
       localStorage.setItem("currentQueueNumber", newQueueNumber);
       setQueueNumber(newQueueNumber);
@@ -50,7 +47,7 @@ export default function SimpleQueuePage() {
       const formattedDateTime = formatDateTime(now);
       const formattedQueueNumber = String(newQueueNumber).padStart(3, "0");
 
-      let printer = new PrintPlugin("58mm");
+      let printer = new PrintPlugin("80mm");
       printer.connectToPrint({
          onReady: async (print) => {
             try {
@@ -88,35 +85,23 @@ export default function SimpleQueuePage() {
    };
 
    return (
-      <Container size="xs" style={{ minHeight: "100vh", display: "flex", alignItems: "center" }}>
-         <Paper withBorder shadow="md" p="xl" radius="md" style={{ width: "100%" }}>
-            <Title order={2} ta="center" mb="lg" style={{ color: "#E9AC50" }}>
-               Cetak Antrean
-            </Title>
+      <div className="card">
+         <h1>Cetak Antrean</h1>
 
-            <Center>
-               <Paper withBorder p="xl" radius="md" ta="center" mb="xl" bg="gray.0">
-                  <Text size="lg" c="dimmed">
-                     Nomor Berikutnya
-                  </Text>
-                  <Text fz={60} fw={700} style={{ color: "#E9AC50" }}>
-                     {String(queueNumber + 1).padStart(3, "0")}
-                  </Text>
-               </Paper>
-            </Center>
+         <div className="queue-display">
+            <h2>Nomor Berikutnya</h2>
+            <p className="queue-number">{String(queueNumber + 1).padStart(3, "0")}</p>
+         </div>
 
-            <Button fullWidth color="#E9AC50" variant="filled" size="lg" radius="md" loading={isLoading} onClick={handlePrint}>
-               Cetak
-            </Button>
+         <button className="print-button" onClick={handlePrint} disabled={isLoading}>
+            {isLoading ? "Mencetak..." : "Cetak"}
+         </button>
 
-            {/* <Button fullWidth variant="outline" color="gray" size="sm" radius="md" mt="lg" onClick={handleReset}>
-               Reset Antrean
-            </Button> */}
+         <button className="reset-button" onClick={handleReset}>
+            Reset Antrean
+         </button>
 
-            <Text ta="center" c="dimmed" mt="md" size="sm">
-               {status}
-            </Text>
-         </Paper>
-      </Container>
+         <p className="status">{status}</p>
+      </div>
    );
 }

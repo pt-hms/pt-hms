@@ -40,7 +40,7 @@ export default function Dashboard({ children, title }) {
                 className={`bg-slate-100 min-h-screen p-6`}
             >
                 <Head title={title} />
-                <div className="w-full h-12 bg-white rounded-xl !shadow-normal flex justify-between items-center mb-5 dark:bg-slate-800 dark:text-white transition duration-200">
+                <div className="w-full h-12 bg-white rounded-xl !shadow-normal flex justify-between items-center mb-5 transition duration-200">
                     <DashboardNavbar
                         toggle={toggle}
                         opened={opened}

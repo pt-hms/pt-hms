@@ -50,7 +50,7 @@ export default function SimpleQueuePage() {
       const formattedDateTime = formatDateTime(now);
       const formattedQueueNumber = String(newQueueNumber).padStart(3, "0");
 
-      let printer = new PrintPlugin("80mm");
+      let printer = new PrintPlugin("58mm");
       printer.connectToPrint({
          onReady: async (print) => {
             try {

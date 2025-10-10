@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-   title: "KJMHS",
-   description: "KJMHS Order App",
+   title: "KJHMS",
+   description: "KJHMS Order App",
    manifest: "/manifest.json",
    icons: {
       icon: "/icons/icon-192x192.png",

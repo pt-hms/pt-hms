@@ -71,7 +71,7 @@ export default function print() {
                <Button fullWidth color="#E9AC50" variant="filled" size="lg" radius="md" onClick={handleConnectAndPrint}>
                   Cetak
                </Button>
-               {/* <p id="status"></p> */}
+               <p id="status" className="color-[#E9AC50]"></p>
             </Paper>
          </Container>
       </>

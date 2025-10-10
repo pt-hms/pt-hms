@@ -4,6 +4,8 @@ import { DatePickerInput } from "@mantine/dates";
 import dayjs from "dayjs";
 import "dayjs/locale/id";
 import isBetween from "dayjs/plugin/isBetween";
+import { Icon } from "@iconify/react";
+
 dayjs.extend(isBetween);
 
 export default function Page() {
@@ -20,7 +22,7 @@ export default function Page() {
     { tanggal: "2025-10-07", jumlah: 13 },
     { tanggal: "2025-10-08", jumlah: 17 },
     { tanggal: "2025-10-09", jumlah: 19 },
-    { tanggal: "2025-10-10", jumlah: 9 },
+    { tanggal: "2025-10-10", jumlah: 9 }, // hari ini
     { tanggal: "2025-10-11", jumlah: 7 },
     { tanggal: "2025-10-12", jumlah: 20 },
   ];
@@ -33,9 +35,32 @@ export default function Page() {
     return diff > 7 || diff < 0;
   };
 
-  // === 🔍 Filter data berdasarkan tanggal terpilih ===
+  const today = dayjs().format("YYYY-MM-DD");
+
+  // === 🔍 Tentukan data berdasarkan pilihan ===
   const filteredData = useMemo(() => {
-    if (!range[0] || !range[1]) return [];
+    if (!range[0]) {
+      // belum pilih → tampil hari ini
+      return dataRitase
+        .filter((d) => d.tanggal === today)
+        .map((d) => ({
+          ...d,
+          hari: dayjs(d.tanggal).locale("id").format("dddd"),
+        }));
+    }
+
+    if (range[0] && !range[1]) {
+      // hanya satu tanggal
+      const selected = dayjs(range[0]).format("YYYY-MM-DD");
+      return dataRitase
+        .filter((d) => d.tanggal === selected)
+        .map((d) => ({
+          ...d,
+          hari: dayjs(d.tanggal).locale("id").format("dddd"),
+        }));
+    }
+
+    // rentang tanggal
     return dataRitase
       .filter((d) =>
         dayjs(d.tanggal).isBetween(range[0], range[1], "day", "[]")
@@ -44,18 +69,38 @@ export default function Page() {
         ...d,
         hari: dayjs(d.tanggal).locale("id").format("dddd"),
       }));
-  }, [range]);
+  }, [range, today]);
 
-  // === 📊 Hitung total dan maksimum untuk grafik ===
   const total = filteredData.reduce((a, b) => a + b.jumlah, 0);
   const max = Math.max(...filteredData.map((d) => d.jumlah), 0);
 
+  const hanyaSatuTanggal = range[0] && !range[1];
+  const rentangTanggal = range[0] && range[1];
+
+  // === 🗓️ Format tanggal tampil di label ===
+  const labelTanggal = (() => {
+    if (!range[0]) {
+      return `Hari ini, ${dayjs().locale("id").format("dddd, D MMMM YYYY")}`;
+    }
+    if (hanyaSatuTanggal) {
+      return `${dayjs(range[0]).locale("id").format("dddd, D MMMM YYYY")}`;
+    }
+    if (rentangTanggal) {
+      return `${dayjs(range[0])
+        .locale("id")
+        .format("D MMMM YYYY")} - ${dayjs(range[1])
+          .locale("id")
+          .format("D MMMM YYYY")}`;
+    }
+    return "";
+  })();
+
   return (
-    <div className="w-full flex justify-center items-center min-h-screen pb-[94px]">
-      <div className="bg-[#FFF9F0] p-5 rounded-2xl shadow-md w-full max-w-[420px]">
-        {/* PILIH RENTANG TANGGAL */}
+    <div className="w-full flex justify-center items-center min-h-screen pb-[100px] lg:pb-[120px]">
+      <div className="bg-white p-5 rounded-2xl shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] w-full max-w-[420px] h-full">
+        {/* === PILIH RENTANG TANGGAL === */}
         <div className="flex flex-col mb-6">
-          <label className="text-[#704E1C] font-semibold mb-2">
+          <label className="text-[#704E1C] font-semibold mb-2 text-center">
             Pilih Rentang Tanggal (Max 7 Hari)
           </label>
           <DatePickerInput
@@ -72,48 +117,71 @@ export default function Page() {
           />
         </div>
 
-        {/* HEADER */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="font-bold text-2xl text-[#AE8B56]">Grafik Ritase</h2>
-          {range[0] && range[1] && (
-            <span className="text-[#704E1C] text-sm font-medium">
-              {dayjs(range[0]).format("DD MMM")} -{" "}
-              {dayjs(range[1]).format("DD MMM YYYY")}
-            </span>
-          )}
-        </div>
 
-        {/* GRAFIK */}
-        {filteredData.length > 0 ? (
-          <div className="flex flex-col gap-2 mb-4">
-            {filteredData.map((item) => (
-              <div key={item.tanggal} className="flex items-center gap-2">
-                <span className="w-20 text-[#B8791B] font-medium capitalize">
-                  {item.hari}
-                </span>
-                <div className="flex-1 bg-[#FCE6BE] h-12 rounded-md relative overflow-hidden">
-                  <div
-                    className="bg-[#E4B778] h-full transition-all duration-500"
-                    style={{ width: `${(item.jumlah / max) * 100}%` }}
-                  ></div>
-                  <span className="absolute inset-0 flex justify-center items-center text-[#704E1C] font-semibold">
-                    {item.jumlah}
-                  </span>
-                </div>
-              </div>
-            ))}
+
+        {/* === KONDISI 1 & 2: HARI INI atau SATU HARI === */}
+        {(!range[0] || hanyaSatuTanggal) && (
+          <div className="flex flex-col items-center mb-2">
+            <div className="flex items-center gap-2">
+              <Icon
+                icon="lets-icons:order-light"
+                width={28}
+                className="text-[#704E1C]"
+              />
+              <span className="text-2xl font-bold text-[#4B2E0B]">
+                {total > 0 ? `${total} Ritase` : "Tidak Ada Data"}
+              </span>
+            </div>
           </div>
-        ) : (
-          <p className="text-center text-[#704E1C] italic mb-4">
-            Pilih rentang tanggal untuk melihat data ritase
-          </p>
         )}
 
-        {/* TOTAL */}
-        <p className="text-[#704E1C] font-semibold text-center">
-          Total Ritase:{" "}
-          <span className="font-bold text-[#4B2E0B]">{total} Ritase</span>
-        </p>
+        {/* === LABEL TANGGAL === */}
+        <div className="text-center mb-4">
+          <span className="text-[#B8791B] text-sm font-semibold">
+            {labelTanggal}
+          </span>
+        </div>
+
+        {/* === KONDISI 3: RENTANG TANGGAL === */}
+        {rentangTanggal && filteredData.length > 0 && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="font-bold text-2xl text-[#AE8B56]">Grafik Ritase</h2>
+            </div>
+
+            <div className="flex flex-col gap-2 mb-4">
+              {filteredData.map((item) => (
+                <div key={item.tanggal} className="flex items-center gap-2">
+                  <span className="w-20 text-[#B8791B] font-medium capitalize">
+                    {item.hari}
+                  </span>
+                  <div className="flex-1 bg-[#FCE6BE] h-12 rounded-md relative overflow-hidden">
+                    <div
+                      className="bg-[#E4B778] h-full transition-all duration-500"
+                      style={{ width: `${(item.jumlah / max) * 100}%` }}
+                    ></div>
+                    <span className="absolute inset-0 flex justify-center items-center text-[#704E1C] font-semibold">
+                      {item.jumlah}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Total */}
+            <p className="text-[#704E1C] font-semibold text-center">
+              Total Ritase:{" "}
+              <span className="font-bold text-[#4B2E0B]">{total} Ritase</span>
+            </p>
+          </div>
+        )}
+
+        {/* === Jika filter aktif tapi kosong === */}
+        {rentangTanggal && filteredData.length === 0 && (
+          <p className="text-center text-[#704E1C] italic mb-4">
+            Tidak ada data dalam rentang tanggal ini
+          </p>
+        )}
       </div>
     </div>
   );

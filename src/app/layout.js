@@ -1,8 +1,11 @@
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
+import '@mantine/dropzone/styles.css';
+import '@mantine/notifications/styles.css';
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { MantineProvider } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
 
 const geistSans = Geist({
    variable: "--font-geist-sans",
@@ -33,6 +36,7 @@ export default function RootLayout({ children }) {
                withGlobalStyles
                withNormalizeCSS
             >
+               <Notifications />
                {children}
             </MantineProvider>
          </body>

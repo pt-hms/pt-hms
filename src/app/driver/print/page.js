@@ -1,66 +1,77 @@
 "use client";
-import { useState } from "react";
 
-export default function PrintPage() {
-   const [status, setStatus] = useState("Belum terhubung");
-
-   const detectDevice = () => {
-      const ua = navigator.userAgent.toLowerCase();
-      if (/android/i.test(ua)) return "android";
-      if (/iphone|ipad|ipod/i.test(ua)) return "ios";
-      return "desktop";
-   };
-
-   const connectPrinter = async () => {
-      const deviceType = detectDevice();
-      setStatus(`Mendeteksi perangkat: ${deviceType}`);
-
-      try {
-         if (deviceType === "desktop") {
-            // === Web Serial API === (untuk Laptop / PC)
-            const port = await navigator.serial.requestPort();
-            await port.open({ baudRate: 9600 });
-            const writer = port.writable.getWriter();
-
-            const text = "KJHMS\n15\nJUTA\n";
-            const encoder = new TextEncoder();
-            await writer.write(encoder.encode(text + "\n\n\n"));
-
-            writer.releaseLock();
-            await port.close();
-            setStatus("✅ Berhasil mencetak di desktop!");
-         } else {
-            // === Web Bluetooth === (untuk Android/iOS)
-            const device = await navigator.bluetooth.requestDevice({
-               acceptAllDevices: true,
-               optionalServices: [0xffe0], // Service umum untuk printer bluetooth
-            });
-
-            setStatus(`🔗 Terhubung ke ${device.name || "Printer"}`);
-
-            const server = await device.gatt.connect();
-            const service = await server.getPrimaryService(0xffe0);
-            const characteristic = await service.getCharacteristic(0xffe1);
-
-            const text = "KJHMS\n15\nJUTA\n";
-            const encoder = new TextEncoder();
-            await characteristic.writeValue(encoder.encode(text + "\n\n\n"));
-
-            setStatus("✅ Berhasil mencetak via Bluetooth!");
-         }
-      } catch (err) {
-         console.error(err);
-         setStatus("❌ Gagal mencetak: " + err.message);
+export default function HomePage() {
+   // This function will be called when the button is clicked
+   const handleConnectAndPrint = () => {
+      // Check if the PrintPlugin is available on the window object
+      if (typeof PrintPlugin === "undefined") {
+         console.error("PrintPlugin is not loaded yet.");
+         // You could update a state here to show an error message to the user
+         document.getElementById("status").textContent = "Error: Printing library not loaded.";
+         return;
       }
+
+      let printer = new PrintPlugin("80mm");
+
+      printer.connectToPrint({
+         onReady: async (print) => {
+            try {
+               document.getElementById("status").textContent = "Printing...";
+
+               // Print Header
+               await print.writeText("SADIGIT", {
+                  align: "center",
+                  bold: true,
+                  size: "double",
+               });
+               await print.writeText("Jl. Kutamaya No.Ruko A, Kotakulon, Kec. Sumedang Sel., Kabupaten Sumedang, Jawa Barat 45311", { align: "center" });
+               await print.writeText("0852-2299-9699", { align: "center" });
+               await print.writeLineBreak();
+               await print.writeText("No.Transaksi: SDGT-ONL-0001", {
+                  align: "center",
+               });
+               await print.writeText("Kasir: Otongsuke", { align: "center" });
+               await print.writeText("2024-10-23 10:20:18", { align: "center" });
+
+               // Print Items
+               await print.writeDashLine();
+               for (let i = 0; i < 5; i++) {
+                  await print.writeText("Item Sample-" + i, { align: "left" });
+                  await print.writeTextWith2Column("1 pcs x 10.000", "10.000");
+               }
+               await print.writeDashLine();
+
+               // Print Total
+               await print.writeTextWith2Column("Total :", "50.000");
+               await print.writeTextWith2Column("Bayar :", "100.000");
+               await print.writeTextWith2Column("Kembali :", "50.000");
+               await print.writeTextWith2Column("Metode :", "Tunai");
+
+               // Print Footer
+               await print.writeLineBreak();
+               await print.writeText("Terimakasih sudah mencoba Follow IG @sadigit.id", { align: "center" });
+               await print.writeLineBreak(3);
+
+               document.getElementById("status").textContent = "Print successful!";
+            } catch (error) {
+               console.error("Printing failed:", error);
+               document.getElementById("status").textContent = `Printing failed: ${error.message}`;
+            }
+         },
+         onFailed: (message) => {
+            console.log(message);
+            document.getElementById("status").textContent = `Failed: ${message}`;
+         },
+      });
    };
 
    return (
-      <div className="flex flex-col items-center justify-center min-h-screen text-center">
-         <h1 className="text-2xl font-bold mb-4">🖨️ Tes Print Universal</h1>
-         <button onClick={connectPrinter} className="bg-blue-600 text-white px-4 py-2 rounded-lg">
-            Hubungkan & Cetak
+      <main style={{ padding: "20px", fontFamily: "sans-serif" }}>
+         <h1>Bluetooth Print</h1>
+         <button id="connect" onClick={handleConnectAndPrint}>
+            Connect and Print
          </button>
-         <p className="mt-4">{status}</p>
-      </div>
+         <p id="status"></p>
+      </main>
    );
 }

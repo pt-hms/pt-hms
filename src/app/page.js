@@ -32,7 +32,6 @@ export default function page() {
   });
 
   const handleSubmit = (values) => {
-    alert(`Login dengan nomor: ${values.phone}`);
     redirect("/driver");
     //fetch login ke be
   };

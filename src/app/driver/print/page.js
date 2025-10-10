@@ -1,107 +1,77 @@
 "use client";
 
-import { useState, useEffect } from "react";
-
-export default function SimpleQueuePage() {
-   // State untuk data aplikasi (tidak ada perubahan di sini)
-   const [queueNumber, setQueueNumber] = useState(0);
-   const [isLoading, setIsLoading] = useState(false);
-   const [status, setStatus] = useState("Siap untuk mencetak...");
-
-   // Mengambil nomor terakhir dari localStorage saat halaman dimuat
-   useEffect(() => {
-      const savedQueueNumber = parseInt(localStorage.getItem("currentQueueNumber")) || 0;
-      setQueueNumber(savedQueueNumber);
-   }, []);
-
-   const formatDateTime = (date) => {
-      const day = String(date.getDate()).padStart(2, "0");
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const year = date.getFullYear();
-      const hours = String(date.getHours()).padStart(2, "0");
-      const minutes = String(date.getMinutes()).padStart(2, "0");
-      const seconds = String(date.getSeconds()).padStart(2, "0");
-      return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
-   };
-
-   // Fungsi utama untuk mencetak (tidak ada perubahan logika)
-   const handlePrint = () => {
+export default function HomePage() {
+   // This function will be called when the button is clicked
+   const handleConnectAndPrint = () => {
+      // Check if the PrintPlugin is available on the window object
       if (typeof PrintPlugin === "undefined") {
-         setStatus("Error: Pustaka printer belum siap.");
+         console.error("PrintPlugin is not loaded yet.");
+         // You could update a state here to show an error message to the user
+         document.getElementById("status").textContent = "Error: Printing library not loaded.";
          return;
       }
 
-      setIsLoading(true);
-
-      const title = "PT HMS";
-      const subtitle = "Bandara Soekarno-Hatta";
-      const footer = "Berikut kode antrean anda";
-
-      const newQueueNumber = queueNumber + 1;
-      localStorage.setItem("currentQueueNumber", newQueueNumber);
-      setQueueNumber(newQueueNumber);
-
-      setStatus(`Mencetak nomor ${String(newQueueNumber).padStart(3, "0")}...`);
-
-      const now = new Date();
-      const formattedDateTime = formatDateTime(now);
-      const formattedQueueNumber = String(newQueueNumber).padStart(3, "0");
-
       let printer = new PrintPlugin("80mm");
+
       printer.connectToPrint({
          onReady: async (print) => {
             try {
-               await print.writeText(title.toUpperCase(), { align: "center", bold: true, size: "double" });
-               await print.writeText(subtitle, { align: "center" });
+               document.getElementById("status").textContent = "Printing...";
+
+               // Print Header
+               await print.writeText("SADIGIT", {
+                  align: "center",
+                  bold: true,
+                  size: "double",
+               });
+               await print.writeText("Jl. Kutamaya No.Ruko A, Kotakulon, Kec. Sumedang Sel., Kabupaten Sumedang, Jawa Barat 45311", { align: "center" });
+               await print.writeText("0852-2299-9699", { align: "center" });
+               await print.writeLineBreak();
+               await print.writeText("No.Transaksi: SDGT-ONL-0001", {
+                  align: "center",
+               });
+               await print.writeText("Kasir: Otongsuke", { align: "center" });
+               await print.writeText("2024-10-23 10:20:18", { align: "center" });
+
+               // Print Items
                await print.writeDashLine();
-               await print.writeText(formattedDateTime, { align: "center" });
-               await print.writeText(formattedQueueNumber, { align: "center", bold: true, size: "4x" });
+               for (let i = 0; i < 5; i++) {
+                  await print.writeText("Item Sample-" + i, { align: "left" });
+                  await print.writeTextWith2Column("1 pcs x 10.000", "10.000");
+               }
                await print.writeDashLine();
-               await print.writeText(footer, { align: "center" });
+
+               // Print Total
+               await print.writeTextWith2Column("Total :", "50.000");
+               await print.writeTextWith2Column("Bayar :", "100.000");
+               await print.writeTextWith2Column("Kembali :", "50.000");
+               await print.writeTextWith2Column("Metode :", "Tunai");
+
+               // Print Footer
+               await print.writeLineBreak();
+               await print.writeText("Terimakasih sudah mencoba Follow IG @sadigit.id", { align: "center" });
                await print.writeLineBreak(3);
 
-               setStatus(`Nomor ${formattedQueueNumber} berhasil dicetak.`);
-            } catch (e) {
-               console.error("Gagal saat mencetak:", e);
-               setStatus(`Gagal saat proses cetak: ${e.message}`);
-            } finally {
-               setIsLoading(false);
+               document.getElementById("status").textContent = "Print successful!";
+            } catch (error) {
+               console.error("Printing failed:", error);
+               document.getElementById("status").textContent = `Printing failed: ${error.message}`;
             }
          },
          onFailed: (message) => {
             console.log(message);
-            setStatus(`Gagal terhubung ke printer: ${message}`);
-            setIsLoading(false);
+            document.getElementById("status").textContent = `Failed: ${message}`;
          },
       });
    };
 
-   const handleReset = () => {
-      if (confirm("Yakin ingin mereset nomor antrean kembali ke 0?")) {
-         localStorage.setItem("currentQueueNumber", "0");
-         setQueueNumber(0);
-         setStatus("Nomor antrean berhasil direset.");
-      }
-   };
-
    return (
-      <div className="card">
-         <h1>Cetak Antrean</h1>
-
-         <div className="queue-display">
-            <h2>Nomor Berikutnya</h2>
-            <p className="queue-number">{String(queueNumber + 1).padStart(3, "0")}</p>
-         </div>
-
-         <button className="print-button" onClick={handlePrint} disabled={isLoading}>
-            {isLoading ? "Mencetak..." : "Cetak"}
+      <main style={{ padding: "20px", fontFamily: "sans-serif" }}>
+         <h1>Bluetooth Print</h1>
+         <button id="connect" onClick={handleConnectAndPrint}>
+            Connect and Print
          </button>
-
-         <button className="reset-button" onClick={handleReset}>
-            Reset Antrean
-         </button>
-
-         <p className="status">{status}</p>
-      </div>
+         <p id="status"></p>
+      </main>
    );
 }

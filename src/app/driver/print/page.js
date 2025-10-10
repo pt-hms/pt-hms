@@ -10,7 +10,7 @@ export default function print() {
          return;
       }
 
-      let printer = new PrintPlugin("80mm");
+      let printer = new PrintPlugin("58mm");
 
       printer.connectToPrint({
          onReady: async (print) => {
@@ -24,7 +24,9 @@ export default function print() {
                await print.writeText("001", { align: "center", bold: true, size: "double" });
                await print.writeDashLine();
                await print.writeText("Berikut nomor antrean anda", { align: "center" });
-               await print.writeLineBreak(7);
+               await print.writeLineBreak();
+               await print.writeLineBreak();
+               await print.writeLineBreak();
 
                document.getElementById("status").textContent = "Print successful!";
             } catch (error) {
@@ -69,7 +71,7 @@ export default function print() {
                <Button fullWidth color="#E9AC50" variant="filled" size="lg" radius="md" onClick={handleConnectAndPrint}>
                   Cetak
                </Button>
-               <p id="status"></p>
+               {/* <p id="status"></p> */}
             </Paper>
          </Container>
       </>

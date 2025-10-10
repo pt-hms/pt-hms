@@ -17,14 +17,14 @@ export default function print() {
             try {
                document.getElementById("status").textContent = "Printing...";
 
-               await print.writeText("PT HMS", { align: "center", bold: true, size: "double" });
+               await print.writeText("PT HMS", { align: "center", bold: true });
                await print.writeText("Bandara Soekarno-Hatta", { align: "center" });
                await print.writeDashLine();
                await print.writeText("Jumat 10/10/25 22:40:24", { align: "center" });
-               await print.writeText("001", { align: "center", bold: true, size: "4x" });
+               await print.writeText("001", { align: "center", bold: true, size: "double" });
                await print.writeDashLine();
                await print.writeText("Berikut nomor antrean anda", { align: "center" });
-               await print.writeLineBreak(3);
+               await print.writeLineBreak(7);
 
                document.getElementById("status").textContent = "Print successful!";
             } catch (error) {

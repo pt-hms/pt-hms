@@ -1,12 +1,11 @@
 "use client";
 
-export default function HomePage() {
-   // This function will be called when the button is clicked
+import { TextInput, Button, Paper, Container, Title, Text, Center, Group } from "@mantine/core";
+
+export default function print() {
    const handleConnectAndPrint = () => {
-      // Check if the PrintPlugin is available on the window object
       if (typeof PrintPlugin === "undefined") {
          console.error("PrintPlugin is not loaded yet.");
-         // You could update a state here to show an error message to the user
          document.getElementById("status").textContent = "Error: Printing library not loaded.";
          return;
       }
@@ -18,38 +17,13 @@ export default function HomePage() {
             try {
                document.getElementById("status").textContent = "Printing...";
 
-               // Print Header
-               await print.writeText("SADIGIT", {
-                  align: "center",
-                  bold: true,
-                  size: "double",
-               });
-               await print.writeText("Jl. Kutamaya No.Ruko A, Kotakulon, Kec. Sumedang Sel., Kabupaten Sumedang, Jawa Barat 45311", { align: "center" });
-               await print.writeText("0852-2299-9699", { align: "center" });
-               await print.writeLineBreak();
-               await print.writeText("No.Transaksi: SDGT-ONL-0001", {
-                  align: "center",
-               });
-               await print.writeText("Kasir: Otongsuke", { align: "center" });
-               await print.writeText("2024-10-23 10:20:18", { align: "center" });
-
-               // Print Items
+               await print.writeText("PT HMS", { align: "center", bold: true, size: "double" });
+               await print.writeText("Bandara Soekarno-Hatta", { align: "center" });
                await print.writeDashLine();
-               for (let i = 0; i < 5; i++) {
-                  await print.writeText("Item Sample-" + i, { align: "left" });
-                  await print.writeTextWith2Column("1 pcs x 10.000", "10.000");
-               }
+               await print.writeText("Jumat 10/10/25 22:40:24", { align: "center" });
+               await print.writeText("001", { align: "center", bold: true, size: "4x" });
                await print.writeDashLine();
-
-               // Print Total
-               await print.writeTextWith2Column("Total :", "50.000");
-               await print.writeTextWith2Column("Bayar :", "100.000");
-               await print.writeTextWith2Column("Kembali :", "50.000");
-               await print.writeTextWith2Column("Metode :", "Tunai");
-
-               // Print Footer
-               await print.writeLineBreak();
-               await print.writeText("Terimakasih sudah mencoba Follow IG @sadigit.id", { align: "center" });
+               await print.writeText("Berikut nomor antrean anda", { align: "center" });
                await print.writeLineBreak(3);
 
                document.getElementById("status").textContent = "Print successful!";
@@ -66,12 +40,38 @@ export default function HomePage() {
    };
 
    return (
-      <main style={{ padding: "20px", fontFamily: "sans-serif" }}>
-         <h1>Bluetooth Print</h1>
-         <button id="connect" onClick={handleConnectAndPrint}>
-            Connect and Print
-         </button>
-         <p id="status"></p>
-      </main>
+      <>
+         {/* <main style={{ padding: "20px", fontFamily: "sans-serif" }}>
+            <h1>Bluetooth Print</h1>
+            <button id="connect" onClick={handleConnectAndPrint}>
+               Connect and Print
+            </button>
+            <p id="status"></p>
+         </main> */}
+
+         <Container size="xs" style={{ minHeight: "100vh", display: "flex", alignItems: "center" }}>
+            <Paper withBorder shadow="md" p="xl" radius="md" style={{ width: "100%" }}>
+               <Title order={2} ta="center" mb="lg" style={{ color: "#E9AC50" }}>
+                  Cetak Antrean
+               </Title>
+
+               <Center>
+                  <Paper withBorder p="xl" radius="md" ta="center" mb="xl" bg="gray.0">
+                     <Text size="lg" c="dimmed">
+                        Nomor Berikutnya
+                     </Text>
+                     <Text fz={60} fw={700} style={{ color: "#E9AC50" }}>
+                        001
+                     </Text>
+                  </Paper>
+               </Center>
+
+               <Button fullWidth color="#E9AC50" variant="filled" size="lg" radius="md" onClick={handleConnectAndPrint}>
+                  Cetak
+               </Button>
+               <p id="status"></p>
+            </Paper>
+         </Container>
+      </>
    );
 }

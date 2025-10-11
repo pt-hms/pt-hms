@@ -1,19 +1,82 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { TextInput, PasswordInput, Button, Select, Group, FileButton } from "@mantine/core"
-import Image from "next/image"
+import { useState, useRef, useEffect } from "react";
+import {
+    TextInput,
+    PasswordInput,
+    Button,
+    Select,
+    Group,
+    FileButton,
+} from "@mantine/core";
+import Image from "next/image";
 import { useForm, matchesField } from "@mantine/form";
 import { redirect } from "next/navigation";
 import { DateInput } from "@mantine/dates";
 import "dayjs/locale/id";
 import { Icon } from "@iconify/react";
-import { notifications } from "@mantine/notifications";
-export default function page() {
+
+export default function Page() {
     const [preview, setPreview] = useState(null);
     const [cameraActive, setCameraActive] = useState(false);
+    const [stream, setStream] = useState(null);
     const videoRef = useRef(null);
     const canvasRef = useRef(null);
+
+    // 🔹 Start Camera
+    const startCamera = async () => {
+        try {
+            console.log("🎥 Memulai kamera...");
+            const mediaStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "user" },
+                audio: false,
+            });
+            console.log("✅ Stream diterima:", mediaStream);
+            setStream(mediaStream);
+            setCameraActive(true);
+        } catch (err) {
+            console.error("❌ Gagal membuka kamera:", err);
+            alert("Tidak dapat mengakses kamera. Pastikan izin sudah diberikan.");
+        }
+    };
+
+    // 🔹 Stop Camera
+    const stopCamera = () => {
+        console.log("🛑 Menutup kamera...");
+        if (stream) {
+            stream.getTracks().forEach((track) => track.stop());
+            setStream(null);
+        }
+        setCameraActive(false);
+    };
+
+    // 🔹 Capture Selfie
+    const capturePhoto = () => {
+        if (!videoRef.current) return;
+        console.log("📸 Mengambil foto...");
+        const canvas = document.createElement("canvas");
+        canvas.width = videoRef.current.videoWidth;
+        canvas.height = videoRef.current.videoHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL("image/png");
+        setPreview(dataUrl);
+        stopCamera();
+    };
+
+    useEffect(() => {
+        if (videoRef.current && stream) {
+            console.log("🎬 Menampilkan video dari stream...");
+            videoRef.current.srcObject = stream;
+
+            // Pastikan video langsung play setelah stream diset
+            videoRef.current.onloadedmetadata = () => {
+                videoRef.current.play().catch((err) => {
+                    console.error("⚠️ Tidak bisa auto-play video:", err);
+                });
+            };
+        }
+    }, [stream]);
 
     const form = useForm({
         initialValues: {
@@ -30,55 +93,22 @@ export default function page() {
             profile: null,
         },
         validate: {
-            name: (value) => {
-                const trimmed = value.trim();
-                if (!trimmed) return "Nama wajib diisi";
-                return null;
-            },
-            plat: (value) => {
-                const trimmed = value.trim();
-                if (!trimmed) return "Plat nomor wajib diisi";
-                return null;
-            },
-            category: (value) => {
-                const trimmed = value.trim();
-                if (!trimmed) return "Kategori driver wajib diisi";
-                return null;
-            },
-            car_name: (value) => {
-                const trimmed = value.trim();
-                if (!trimmed) return "Nama mobil wajib diisi";
-                return null;
-            },
-            no_kep: (value) => {
-                const trimmed = value.trim();
-                if (!trimmed) return "Nomor KEP wajib diisi";
-                return null;
-            },
-            period: (value) => {
-                if (!value) return "Tanggal berlaku kartu wajib diisi";
-                return null;
-            },
-            phone: (value) => {
-                const trimmed = value.trim();
-                if (!trimmed) return "Nomor telepon wajib diisi";
-                return null;
-            },
-            emergency_phone: (value) => {
-                const trimmed = value.trim();
-                if (!trimmed) return "Nomor telepon darurat wajib diisi";
-                return null;
-            },
+            name: (value) => (!value.trim() ? "Nama wajib diisi" : null),
+            plat: (value) => (!value.trim() ? "Plat nomor wajib diisi" : null),
+            category: (value) => (!value.trim() ? "Kategori driver wajib diisi" : null),
+            car_name: (value) => (!value.trim() ? "Nama mobil wajib diisi" : null),
+            no_kep: (value) => (!value.trim() ? "Nomor KEP wajib diisi" : null),
+            period: (value) => (!value ? "Tanggal berlaku kartu wajib diisi" : null),
+            phone: (value) => (!value.trim() ? "Nomor telepon wajib diisi" : null),
+            emergency_phone: (value) =>
+                !value.trim() ? "Nomor telepon darurat wajib diisi" : null,
             password: (value) =>
                 !value.trim()
                     ? "Password wajib diisi"
                     : value.trim().length < 6
                         ? "Password minimal 6 karakter"
                         : null,
-            confirm_password: matchesField(
-                "password",
-                "Password tidak sama"
-            ),
+            confirm_password: matchesField("password", "Password tidak sama"),
         },
     });
 
@@ -93,50 +123,16 @@ export default function page() {
         }
     };
 
-    const startCamera = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-                setCameraActive(true);
-            }
-        } catch (err) {
-            notifications.show({
-                title: "Gagal membuka kamera",
-                message: "Pastikan kamu memberi izin kamera",
-                color: "red",
-            });
-        }
-    };
-
-    const capturePhoto = () => {
-        if (videoRef.current && canvasRef.current) {
-            const context = canvasRef.current.getContext("2d");
-            context.drawImage(videoRef.current, 0, 0, 320, 240);
-            const dataUrl = canvasRef.current.toDataURL("image/png");
-            setPreview(dataUrl);
-            form.setFieldValue("profile", dataUrl);
-            stopCamera();
-        }
-    };
-
-    const stopCamera = () => {
-        const stream = videoRef.current?.srcObject;
-        if (stream) {
-            const tracks = stream.getTracks();
-            tracks.forEach((track) => track.stop());
-        }
-        setCameraActive(false);
-    };
-
     const handleSubmit = (values) => {
+        console.log("Form submitted:", values);
         redirect("/driver");
-        //fetch login ke be
     };
+
     return (
         <div className="w-full min-h-dvh flex items-center justify-center bg-white text-[#E9AC50]">
             <div className="w-[75%] mx-auto h-fit flex flex-col items-center gap-12 py-12">
                 <Image src={"/logo.png"} alt="" width={160} height={127} />
+
                 <form onSubmit={form.onSubmit(handleSubmit)}>
                     <div className="flex flex-col items-center mb-5">
                         {preview ? (
@@ -151,7 +147,6 @@ export default function page() {
                             </div>
                         )}
 
-                        {/* ✅ Tombol Upload dan Selfie */}
                         <Group>
                             <FileButton onChange={handleFileUpload} accept="image/*">
                                 {(props) => (
@@ -176,31 +171,27 @@ export default function page() {
                             </Button>
                         </Group>
 
-                        {/* ✅ Kamera tampil di sini */}
                         {cameraActive && (
-                            <div className="flex flex-col items-center mt-4">
+                            <div className="fixed inset-0 flex flex-col items-center justify-center bg-black/80 z-50">
                                 <video
                                     ref={videoRef}
-                                    autoPlay={true}
-                                    playsInline={true}
-                                    muted
-                                    width="320"
-                                    height="240"
-                                    className="rounded-md border bg-black"
+                                    autoPlay
+                                    playsInline
+                                    className="w-80 h-80 rounded-2xl bg-black object-cover"
                                 />
-                                <canvas ref={canvasRef} width="320" height="240" className="hidden" />
-                                <Group mt="sm">
-                                    <Button color="green" radius="md" onClick={capturePhoto}>
-                                        Ambil Foto
+                                <div className="mt-4 flex gap-3">
+                                    <Button onClick={capturePhoto} color="blue" radius="md">
+                                        <Icon icon="mdi:camera" className="mr-2" /> Ambil Foto
                                     </Button>
-                                    <Button color="red" radius="md" onClick={stopCamera}>
-                                        Batal
+                                    <Button onClick={stopCamera} color="red" radius="md">
+                                        <Icon icon="mdi:close" className="mr-2" /> Tutup
                                     </Button>
-                                </Group>
-                                {cameraError && <p className="text-red-500 text-sm mt-2">{cameraError}</p>}
+                                </div>
                             </div>
                         )}
                     </div>
+
+                    {/* FORM INPUTS */}
                     <TextInput
                         size="md"
                         radius="md"
@@ -222,7 +213,6 @@ export default function page() {
                         className="hidden md:block"
                     />
 
-                    {/* PLAT NOMOR */}
                     <TextInput
                         size="md"
                         radius="md"
@@ -244,7 +234,6 @@ export default function page() {
                         className="hidden md:block"
                     />
 
-                    {/* KATEGORI */}
                     <Select
                         size="md"
                         radius="md"
@@ -253,7 +242,7 @@ export default function page() {
                         placeholder="Pilih kategori"
                         data={[
                             { value: "premium", label: "Premium" },
-                            { value: "reguler", label: "Reguler" }
+                            { value: "reguler", label: "Reguler" },
                         ]}
                         mb="md"
                         {...form.getInputProps("category")}
@@ -267,14 +256,13 @@ export default function page() {
                         placeholder="Pilih kategori"
                         data={[
                             { value: "premium", label: "Premium" },
-                            { value: "reguler", label: "Reguler" }
+                            { value: "reguler", label: "Reguler" },
                         ]}
                         mb="md"
                         {...form.getInputProps("category")}
                         className="hidden md:block"
                     />
 
-                    {/* CAR NAME */}
                     <TextInput
                         size="md"
                         radius="md"
@@ -296,7 +284,6 @@ export default function page() {
                         className="hidden md:block"
                     />
 
-                    {/* NOMOR KEP */}
                     <TextInput
                         size="md"
                         radius="md"
@@ -318,7 +305,6 @@ export default function page() {
                         className="hidden md:block"
                     />
 
-                    {/* PERIODE */}
                     <DateInput
                         size="md"
                         radius="md"
@@ -344,7 +330,6 @@ export default function page() {
                         className="hidden md:block"
                     />
 
-                    {/* NOMOR TELEPON */}
                     <TextInput
                         size="md"
                         radius="md"
@@ -366,7 +351,6 @@ export default function page() {
                         className="hidden md:block"
                     />
 
-                    {/* NOMOR DARURAT */}
                     <TextInput
                         size="md"
                         radius="md"
@@ -388,7 +372,6 @@ export default function page() {
                         className="hidden md:block"
                     />
 
-                    {/* PASSWORD */}
                     <PasswordInput
                         size="md"
                         radius="md"
@@ -410,7 +393,6 @@ export default function page() {
                         className="hidden md:block"
                     />
 
-                    {/* KONFIRMASI PASSWORD */}
                     <PasswordInput
                         size="md"
                         radius="md"
@@ -431,10 +413,19 @@ export default function page() {
                         {...form.getInputProps("confirm_password")}
                         className="hidden md:block"
                     />
-                    <Button fullWidth color="#E9AC50" type="submit" variant="filled" size="md" radius="md">Daftar</Button>
 
+                    <Button
+                        fullWidth
+                        color="#E9AC50"
+                        type="submit"
+                        variant="filled"
+                        size="md"
+                        radius="md"
+                    >
+                        Daftar
+                    </Button>
                 </form>
             </div>
-        </div >
-    )
+        </div>
+    );
 }

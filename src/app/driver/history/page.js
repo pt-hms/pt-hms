@@ -104,6 +104,7 @@ export default function Page() {
             Pilih Rentang Tanggal (Max 7 Hari)
           </label>
           <DatePickerInput
+            clearable
             type="range"
             locale="id"
             value={range}

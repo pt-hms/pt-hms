@@ -2,22 +2,17 @@
 import { TextInput, PasswordInput, Button } from "@mantine/core"
 import Image from "next/image"
 import { useForm } from "@mantine/form";
+import { redirect } from "next/navigation";
 export default function page() {
   const form = useForm({
     initialValues: {
-      phone: "",
+      plat: "",
       password: "",
     },
     validate: {
-      phone: (value) => {
+      plat: (value) => {
         const trimmed = value.trim();
-        if (!trimmed) return "Nomor telepon wajib diisi";
-        if (!/^[0-9]+$/.test(trimmed)) {
-          return "Nomor telepon hanya boleh berisi angka";
-        }
-        if (trimmed.length < 10 || trimmed.length > 15) {
-          return "Nomor telepon harus 10–15 digit";
-        }
+        if (!trimmed) return "Plat nomor wajib diisi";
         return null;
       },
 
@@ -31,7 +26,7 @@ export default function page() {
   });
 
   const handleSubmit = (values) => {
-    alert(`Login dengan nomor: ${values.phone}`);
+    redirect("/driver");
     //fetch login ke be
   };
   return (
@@ -42,21 +37,21 @@ export default function page() {
           <TextInput
             size="md"
             radius="md"
-            label="Nomor Telepon"
+            label="Plat Nomor"
             withAsterisk
-            placeholder="Masukkan Nomor Telepon"
+            placeholder="Masukkan Plat Nomor"
             mb="md"
-            {...form.getInputProps("phone")}
+            {...form.getInputProps("plat")}
             className="md:hidden"
           />
           <TextInput
             size="lg"
             radius="md"
-            label="Nomor Telepon"
+            label="Plat Nomor"
             withAsterisk
-            placeholder="Masukkan Nomor Telepon"
+            placeholder="Masukkan Plat Nomor"
             mb="md"
-            {...form.getInputProps("phone")}
+            {...form.getInputProps("plat")}
             className="hidden md:block"
           />
           <PasswordInput

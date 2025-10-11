@@ -109,28 +109,28 @@ export default function Page() {
           </p>
         )}
       </Dropzone>
+      {file &&
+        <div className="w-4/5 mx-auto h-fit py-5 flex justify-between max-w-sm">
+          <button
+            className="py-2 px-6 text-lg rounded-xl bg-[#87560E] text-white cursor-pointer"
+            onClick={() => {
+              setPreview(null);
+              setFile(null);
+            }}
+            disabled={isUploading}
+          >
+            Batal
+          </button>
 
-      {/* === BUTTONS === */}
-      <div className="w-4/5 mx-auto h-fit py-5 flex justify-between max-w-sm">
-        <button
-          className="py-2 px-6 text-lg rounded-xl bg-[#87560E] text-white cursor-pointer"
-          onClick={() => {
-            setPreview(null);
-            setFile(null);
-          }}
-          disabled={isUploading}
-        >
-          Batal
-        </button>
-
-        <button
-          onClick={handleUpload}
-          disabled={isUploading}
-          className="py-2 px-6 text-lg rounded-xl bg-[#E9AC50] text-white cursor-pointer"
-        >
-          {isUploading && <Loader size="sm" color="white" />} Kirim
-        </button>
-      </div>
+          <button
+            onClick={handleUpload}
+            disabled={isUploading}
+            className="py-2 px-6 text-lg rounded-xl bg-[#E9AC50] text-white cursor-pointer"
+          >
+            {isUploading && <Loader size="sm" color="white" />} Kirim
+          </button>
+        </div>
+      }
     </div>
   );
 }

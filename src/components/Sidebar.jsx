@@ -17,7 +17,7 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 h-screen bg-white flex flex-col">
+    <aside className="min-w-64 h-screen bg-white flex flex-col">
       {/* Logo */}
       <div className="flex justify-center py-4">
         <Image

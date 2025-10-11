@@ -32,6 +32,7 @@ export default function Dashboard({ children, title }) {
                 // transitionDuration={"2000ms"}
                 visibleFrom="sm"
                 withBorder={false}
+
             >
                 <Sidebar />
             </AppShell.Navbar>

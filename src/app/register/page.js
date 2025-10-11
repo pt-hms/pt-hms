@@ -49,22 +49,29 @@ export default function Page() {
 
     // 🔹 Capture Selfie
     const capturePhoto = () => {
+        if (!videoRef.current) return;
+
         const canvas = document.createElement("canvas");
         const context = canvas.getContext("2d");
         canvas.width = videoRef.current.videoWidth;
         canvas.height = videoRef.current.videoHeight;
+
+        // 👇 Mirror gambar supaya hasil selfie tidak terbalik
+        context.translate(canvas.width, 0);
+        context.scale(-1, 1);
         context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
 
         canvas.toBlob((blob) => {
             if (blob) {
                 const file = new File([blob], "selfie.png", { type: "image/png" });
-                setPreview(URL.createObjectURL(blob)); // untuk tampilan preview
-                form.setFieldValue("profile", file); // <--- penting
-                stopCamera();
-
+                setPreview(URL.createObjectURL(blob));
+                form.setFieldValue("profile", file);
             }
         }, "image/png");
+
+        stopCamera();
     };
+
 
 
     useEffect(() => {
@@ -177,11 +184,14 @@ export default function Page() {
                         {cameraActive && (
                             <div className="fixed inset-0 flex flex-col items-center justify-center bg-black/80 z-50">
                                 <video
-                                    ref={videoRef}
+                                    id="selfieVideo"
                                     autoPlay
                                     playsInline
+                                    ref={videoRef}
                                     className="w-80 h-80 rounded-2xl bg-black object-cover"
+                                    style={{ transform: "scaleX(-1)" }} // 👈 mirror tampilan kamera
                                 />
+
                                 <div className="mt-4 flex gap-3">
                                     <Button onClick={capturePhoto} color="blue" radius="md">
                                         <Icon icon="mdi:camera" className="mr-2" /> Ambil Foto

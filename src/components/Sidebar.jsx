@@ -12,8 +12,8 @@ export default function Sidebar() {
   // Daftar menu statis
   const menus = [
       { label: "Driver", icon: "mdi:account-outline", path: "/admin/driver" },
-      { label: "SDA", icon: "mdi:view-dashboard-outline", path: "/admin/sda" },
-    { label: "Riwayat Ritase", icon: "mdi:file-document-outline", path: "/admin/order" },
+      { label: "SIJ", icon: "solar:ticket-linear", path: "/admin/sij" },
+    { label: "Riwayat Ritase", icon: "lets-icons:order-light", path: "/admin/order" },
   ];
 
   return (

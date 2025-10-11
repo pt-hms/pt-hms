@@ -26,12 +26,10 @@ export default function Page() {
     // 🔹 Start Camera
     const startCamera = async () => {
         try {
-            console.log("🎥 Memulai kamera...");
             const mediaStream = await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: "user" },
                 audio: false,
             });
-            console.log("✅ Stream diterima:", mediaStream);
             setStream(mediaStream);
             setCameraActive(true);
         } catch (err) {
@@ -42,7 +40,6 @@ export default function Page() {
 
     // 🔹 Stop Camera
     const stopCamera = () => {
-        console.log("🛑 Menutup kamera...");
         if (stream) {
             stream.getTracks().forEach((track) => track.stop());
             setStream(null);
@@ -52,21 +49,26 @@ export default function Page() {
 
     // 🔹 Capture Selfie
     const capturePhoto = () => {
-        if (!videoRef.current) return;
-        console.log("📸 Mengambil foto...");
         const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
         canvas.width = videoRef.current.videoWidth;
         canvas.height = videoRef.current.videoHeight;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL("image/png");
-        setPreview(dataUrl);
-        stopCamera();
+        context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob((blob) => {
+            if (blob) {
+                const file = new File([blob], "selfie.png", { type: "image/png" });
+                setPreview(URL.createObjectURL(blob)); // untuk tampilan preview
+                form.setFieldValue("profile", file); // <--- penting
+                stopCamera();
+
+            }
+        }, "image/png");
     };
+
 
     useEffect(() => {
         if (videoRef.current && stream) {
-            console.log("🎬 Menampilkan video dari stream...");
             videoRef.current.srcObject = stream;
 
             // Pastikan video langsung play setelah stream diset
@@ -124,9 +126,10 @@ export default function Page() {
     };
 
     const handleSubmit = (values) => {
-        console.log("Form submitted:", values);
         redirect("/driver");
     };
+
+
 
     return (
         <div className="w-full min-h-dvh flex items-center justify-center bg-white text-[#E9AC50]">

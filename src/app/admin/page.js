@@ -285,8 +285,8 @@ export default function page() {
   ]
 
   const card = [
-    { nama: "Driver", data: dummyUser.length, bg: "blue-100", text: "blue-800", icon: "mdi:users" },
-    { nama: "Ritase Minggu Ini", data: dummyRitase.length, bg: "green-100", text: "green-800", icon: "lets-icons:order-light" },
+    { nama: "Driver", data: dummyUser.length, bg: "bg-blue-100", text: "text-blue-800", icon: "mdi:users" },
+    { nama: "Ritase Minggu Ini", data: dummyRitase.length, bg: "bg-green-100", text: "text-green-800", icon: "lets-icons:order-light" },
 
   ];
 

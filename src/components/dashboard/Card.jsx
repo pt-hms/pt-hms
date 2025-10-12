@@ -1,3 +1,4 @@
+"use client"
 import { Icon } from '@iconify/react'
 import React from 'react'
 
@@ -12,7 +13,7 @@ export default function Card({nama,data,bg,text,icon}) {
                 {data}
               </p>
             </div>
-            <div className={`p-2 rounded-2xl bg-${bg} text-${text}`}>
+            <div className={`p-2 rounded-2xl ${bg} ${text}`}>
               <Icon icon={icon} width={40} height={40} />
             </div>
           </div>

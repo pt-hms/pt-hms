@@ -96,11 +96,13 @@ export default function Page() {
   })();
 
   return (
-    <div className="w-full flex justify-center items-center min-h-screen pb-[100px] lg:pb-[120px]">
-      <div className="bg-white p-5 rounded-2xl shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] w-full max-w-[420px] h-full">
+    // Latar belakang keseluruhan dibuat abu-abu muda lembut
+    <div className="w-full flex justify-center items-center min-h-screen pb-[100px] lg:pb-[120px] bg-gray-50"> 
+      {/* Meningkatkan bayangan kartu utama */}
+      <div className="bg-white p-5 rounded-2xl shadow-xl w-full max-w-[420px] h-full"> 
         {/* === PILIH RENTANG TANGGAL === */}
         <div className="flex flex-col mb-6">
-          <label className="text-[#704E1C] font-semibold mb-2 text-center">
+          <label className="text-[#333333] font-semibold mb-2 text-center">
             Pilih Rentang Tanggal (Max 7 Hari)
           </label>
           <DatePickerInput
@@ -113,23 +115,23 @@ export default function Page() {
             valueFormat="DD MMM YYYY"
             placeholder="Pilih tanggal mulai dan akhir"
             styles={{
-              input: { cursor: "pointer", borderColor: "#AE8B56" },
+              // Tetap warna aksen merah
+              input: { cursor: "pointer", borderColor: "#e10b16" }, 
             }}
           />
         </div>
 
-
-
         {/* === KONDISI 1 & 2: HARI INI atau SATU HARI === */}
         {(!range[0] || hanyaSatuTanggal) && (
-          <div className="flex flex-col items-center mb-2">
+          // Container ritase diberi warna latar belakang merah muda lembut dan shadow yang menonjol
+          <div className="flex flex-col items-center p-4 rounded-lg bg-[#FFF5F5] shadow-md mb-4"> 
             <div className="flex items-center gap-2">
               <Icon
                 icon="lets-icons:order-light"
                 width={28}
-                className="text-[#704E1C]"
+                className="text-[#e10b16]"
               />
-              <span className="text-2xl font-bold text-[#4B2E0B]">
+              <span className="text-2xl font-bold text-[#333333]">
                 {total > 0 ? `${total} Ritase` : "Tidak Ada Data"}
               </span>
             </div>
@@ -138,30 +140,33 @@ export default function Page() {
 
         {/* === LABEL TANGGAL === */}
         <div className="text-center mb-4">
-          <span className="text-[#B8791B] text-sm font-semibold">
+          <span className="text-[#616161] text-sm font-semibold">
             {labelTanggal}
           </span>
         </div>
 
-        {/* === KONDISI 3: RENTANG TANGGAL === */}
+        {/* === KONDISI 3: RENTANG TANGGAL (BAR GRAFIK) === */}
         {rentangTanggal && filteredData.length > 0 && (
           <div>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-bold text-2xl text-[#AE8B56]">Grafik Ritase</h2>
+              <h2 className="font-bold text-2xl text-[#e10b16]">Grafik Ritase</h2>
             </div>
 
-            <div className="flex flex-col gap-2 mb-4">
+            <div className="flex flex-col gap-3 mb-4"> {/* Menambahkan gap agar tidak terlalu rapat */}
               {filteredData.map((item) => (
                 <div key={item.tanggal} className="flex items-center gap-2">
-                  <span className="w-20 text-[#B8791B] font-medium capitalize">
+                  <span className="w-20 text-[#e10b16] font-medium capitalize text-sm"> {/* Teks hari dibuat sedikit lebih kecil */}
                     {item.hari}
                   </span>
-                  <div className="flex-1 bg-[#FCE6BE] h-12 rounded-md relative overflow-hidden">
+                  {/* Latar belakang bar diubah menjadi putih dengan border tipis dan rounded-lg */}
+                  <div className="flex-1 bg-white h-10 rounded-lg relative overflow-hidden border border-gray-200"> 
                     <div
-                      className="bg-[#E4B778] h-full transition-all duration-500"
+                      // Isi bar diubah menjadi gradien merah cerah
+                      className="h-full transition-all duration-500 bg-gradient-to-r from-[#e10b16] to-[#ff4d4d] shadow-md" 
                       style={{ width: `${(item.jumlah / max) * 100}%` }}
                     ></div>
-                    <span className="absolute inset-0 flex justify-center items-center text-[#704E1C] font-semibold">
+                    <span className="absolute inset-0 flex justify-center items-center text-white font-semibold text-sm">
+                      {/* Teks di atas gradien diubah menjadi putih agar kontras */}
                       {item.jumlah}
                     </span>
                   </div>
@@ -170,16 +175,16 @@ export default function Page() {
             </div>
 
             {/* Total */}
-            <p className="text-[#704E1C] font-semibold text-center">
+            <p className="text-[#333333] font-semibold text-center mt-6 p-2 border-t border-gray-200"> 
               Total Ritase:{" "}
-              <span className="font-bold text-[#4B2E0B]">{total} Ritase</span>
+              <span className="font-bold text-[#e10b16]">{total} Ritase</span>
             </p>
           </div>
         )}
 
         {/* === Jika filter aktif tapi kosong === */}
         {rentangTanggal && filteredData.length === 0 && (
-          <p className="text-center text-[#704E1C] italic mb-4">
+          <p className="text-center text-[#616161] italic mb-4">
             Tidak ada data dalam rentang tanggal ini
           </p>
         )}

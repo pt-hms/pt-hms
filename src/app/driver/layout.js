@@ -11,7 +11,7 @@ export default function DriverLayout({ children }) {
 
 
     return (
-        <div className={`bg-[#FFF9F0] max-h-screen ${fontPoppins.variable}`}>
+        <div className={`bg-[#ECECED] max-h-screen ${fontPoppins.variable}`}>
             {children}
             <BottomNavbar />
         </div>

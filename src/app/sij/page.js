@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import { notifications } from "@mantine/notifications";
 import { Loader } from "@mantine/core";
+import { Icon } from "@iconify/react";
 
 export default function Page() {
     const [preview, setPreview] = useState(null);
@@ -19,70 +20,41 @@ export default function Page() {
         }
     };
 
-    // const handleUpload = async () => {
-    //   if (!file) {
-    //     notifications.show({
-    //       title: "Gagal",
-    //       message: "Silakan pilih file terlebih dahulu.",
-    //       color: "red",
-    //     });
-    //     return;
-    //   }
-
-    //   try {
-    //     setIsUploading(true);
-    //     const formData = new FormData();
-    //     formData.append("image", file);
-
-    //     const res = await fetch("/api/upload", {
-    //       method: "POST",
-    //       body: formData,
-    //     });
-
-    //     if (!res.ok) throw new Error("Upload gagal");
-
-    //     notifications.show({
-    //       title: "Berhasil",
-    //       message: "File berhasil diunggah!",
-    //       color: "green",
-    //     });
-
-    //     setPreview(null);
-    //     setFile(null);
-    //   } catch (err) {
-    //     notifications.show({
-    //       title: "Gagal",
-    //       message: err.message || "Terjadi kesalahan saat upload",
-    //       color: "red",
-    //     });
-    //   } finally {
-    //     setIsUploading(false);
-    //   }
-    // };
-
     const handleUpload = () => {
         if (file == null) {
             notifications.show({
                 title: "Gagal",
-                message: "Silakan pilih file terlebih dahulu!",
+                message: "Silakan pilih file terlebih dahulu.",
                 color: "red",
             });
             return;
         }
 
-        notifications.show({
-            title: "Berhasil",
-            message: `File "${file.name}" berhasil diunggah (simulasi)!`,
-            color: "green",
-        });
+        setIsUploading(true); // Mulai loading
+        // Simulasi proses upload
+        setTimeout(() => {
+            notifications.show({
+                title: "Berhasil",
+                message: `Bukti transfer "${file.name}" berhasil diunggah!`,
+                color: "green",
+            });
 
-        setFile(null);
-        setPreview(null);
+            setFile(null);
+            setPreview(null);
+            setIsUploading(false); // Hentikan loading
+        }, 1500); // Simulasi waktu upload 1.5 detik
     };
-    console.log(file);
+    
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-[#FFF9F0] pb-[124px]">
-            {/* === AREA UPLOAD === */}
+        // Wrapper utama diubah:
+        // 1. Dibuat flex container (flex)
+        // 2. Konten diletakkan di tengah horizontal (items-center)
+        // 3. Konten diletakkan di tengah vertikal (justify-center)
+        // 4. pb-[124px] dihilangkan, diganti dengan padding vertikal (py-8)
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 py-8">
+                
+            
+            {/* === AREA UPLOAD (Dropzone) === */}
             <Dropzone
                 accept={IMAGE_MIME_TYPE}
                 multiple={false}
@@ -94,25 +66,41 @@ export default function Page() {
                         color: "red",
                     })
                 }
-                className="w-[80%] h-[60vh] max-w-sm bg-[#FCE6BE] rounded-3xl border-4 border-[#B58A53]
-                   flex items-center justify-center cursor-pointer shadow-inner hover:bg-[#fbe0ad] transition p-2"
+                className="w-[90%] h-[50vh] max-w-sm bg-white rounded-3xl border-4 border-[#e10b16] 
+                           flex flex-col items-center justify-center cursor-pointer shadow-lg hover:bg-red-50 
+                           transition-all duration-300 ease-in-out p-4 relative overflow-hidden"
+                onDragEnter={(event) => event.currentTarget.classList.add('scale-[1.02]', 'shadow-2xl')} 
+                onDragLeave={(event) => event.currentTarget.classList.remove('scale-[1.02]', 'shadow-2xl')}
             >
                 {preview ? (
                     <img
                         src={preview}
-                        alt="Preview"
-                        className="w-full h-[60vh] object-cover rounded-2xl"
+                        alt="Preview Bukti Transfer"
+                        className="max-w-full max-h-full object-contain rounded-2xl animate-fade-in"
                     />
                 ) : (
-                    <p className="text-black font-bold text-center text-xl">
-                        PILIH FILE ANDA<br />DISINI
-                    </p>
+                    <div className="flex flex-col items-center text-center p-4">
+                        <Icon icon="solar:upload-minimalistic-bold" width={80} height={80} className="text-[#e10b16] mb-4 animate-bounce-slow" />
+                        
+                        <p className="text-gray-700 font-extrabold text-2xl tracking-wide mb-2">
+                            UNGGAH BUKTI TRANSFER KEHADIRAN
+                        </p>
+                        <p className="text-gray-500 text-sm mt-1 mb-4 max-w-[200px]">
+                            Klik untuk memilih.
+                        </p>
+                        <p className="text-gray-400 text-xs">
+                            (Format yang didukung: JPG, PNG, JPEG)
+                        </p>
+                    </div>
                 )}
             </Dropzone>
+            
+            {/* === TOMBOL AKSI === */}
             {file &&
-                <div className="w-4/5 mx-auto h-fit py-5 flex justify-between max-w-sm">
+                <div className="w-[90%] mx-auto h-fit py-5 flex flex-col items-center gap-4 max-w-sm mt-8">
+                    {/* Tombol Batal: Abu-abu tua */}
                     <button
-                        className="py-2 px-6 text-lg rounded-xl bg-[#87560E] text-white cursor-pointer"
+                        className="w-full py-3 px-8 text-lg rounded-xl bg-gray-500 text-white cursor-pointer hover:bg-gray-600 transition disabled:opacity-50 font-semibold shadow-md"
                         onClick={() => {
                             setPreview(null);
                             setFile(null);
@@ -122,12 +110,13 @@ export default function Page() {
                         Batal
                     </button>
 
+                    {/* Tombol Kirim: Merah sebagai aksen utama */}
                     <button
                         onClick={handleUpload}
                         disabled={isUploading}
-                        className="py-2 px-6 text-lg rounded-xl bg-[#E9AC50] text-white cursor-pointer"
+                        className="w-full py-3 px-8 text-lg rounded-xl bg-[#e10b16] text-white cursor-pointer hover:bg-red-600 transition disabled:opacity-50 flex items-center gap-2 justify-center font-semibold shadow-md"
                     >
-                        {isUploading && <Loader size="sm" color="white" />} Kirim
+                        {isUploading ? <Loader size="sm" color="white" /> : "Kirim Bukti"}
                     </button>
                 </div>
             }

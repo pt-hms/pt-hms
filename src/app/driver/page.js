@@ -19,47 +19,6 @@ export default function Page() {
     }
   };
 
-  // const handleUpload = async () => {
-  //   if (!file) {
-  //     notifications.show({
-  //       title: "Gagal",
-  //       message: "Silakan pilih file terlebih dahulu.",
-  //       color: "red",
-  //     });
-  //     return;
-  //   }
-
-  //   try {
-  //     setIsUploading(true);
-  //     const formData = new FormData();
-  //     formData.append("image", file);
-
-  //     const res = await fetch("/api/upload", {
-  //       method: "POST",
-  //       body: formData,
-  //     });
-
-  //     if (!res.ok) throw new Error("Upload gagal");
-
-  //     notifications.show({
-  //       title: "Berhasil",
-  //       message: "File berhasil diunggah!",
-  //       color: "green",
-  //     });
-
-  //     setPreview(null);
-  //     setFile(null);
-  //   } catch (err) {
-  //     notifications.show({
-  //       title: "Gagal",
-  //       message: err.message || "Terjadi kesalahan saat upload",
-  //       color: "red",
-  //     });
-  //   } finally {
-  //     setIsUploading(false);
-  //   }
-  // };
-
   const handleUpload = () => {
     if (file == null) {
       notifications.show({
@@ -70,19 +29,27 @@ export default function Page() {
       return;
     }
 
-    notifications.show({
-      title: "Berhasil",
-      message: `File "${file.name}" berhasil diunggah (simulasi)!`,
-      color: "green",
-    });
+    // Simulasi proses upload
+    setIsUploading(true);
+    setTimeout(() => {
+        notifications.show({
+            title: "Berhasil",
+            message: `File "${file.name}" berhasil diunggah (simulasi)!`,
+            color: "green",
+        });
 
-    setFile(null);
-    setPreview(null);
+        setFile(null);
+        setPreview(null);
+        setIsUploading(false);
+    }, 1500); // Simulasi waktu upload 1.5 detik
   };
-  console.log(file);
+  
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#FFF9F0] pb-[124px]">
-      {/* === AREA UPLOAD === */}
+    // Latar belakang layar diubah menjadi abu-abu muda lembut
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 pb-[124px]"> 
+      <h1 className="text-xl font-bold text-[#333333] mb-4">Unggah SS Ritase</h1>
+      
+      {/* === AREA UPLOAD (Dropzone) === */}
       <Dropzone
         accept={IMAGE_MIME_TYPE}
         multiple={false}
@@ -94,25 +61,30 @@ export default function Page() {
             color: "red",
           })
         }
-        className="w-[80%] h-[60vh] max-w-sm bg-[#FCE6BE] rounded-3xl border-4 border-[#B58A53]
-                   flex items-center justify-center cursor-pointer shadow-inner hover:bg-[#fbe0ad] transition p-2"
+        // Latar belakang putih, border Merah sebagai aksen, dan shadow yang jelas
+        className="w-[80%] h-[60vh] max-w-sm bg-white rounded-3xl border-4 border-[#e10b16] 
+                   flex items-center justify-center cursor-pointer shadow-lg hover:bg-gray-100 transition p-2"
       >
         {preview ? (
           <img
             src={preview}
             alt="Preview"
-            className="w-full h-[60vh] object-cover rounded-2xl"
+            className="w-full h-full object-cover rounded-2xl"
+            style={{ objectFit: 'contain' }} // Menggunakan contain agar gambar terlihat utuh
           />
         ) : (
-          <p className="text-black font-bold text-center text-xl">
-            PILIH FILE ANDA<br />DISINI
+          <p className="text-gray-500 font-bold text-center text-xl p-4">
+            PILIH FILE<br />GAMBAR ANDA DISINI
           </p>
         )}
       </Dropzone>
+      
+      {/* === TOMBOL AKSI === */}
       {file &&
         <div className="w-4/5 mx-auto h-fit py-5 flex justify-between max-w-sm">
+          {/* Tombol Batal: Abu-abu tua */}
           <button
-            className="py-2 px-6 text-lg rounded-xl bg-[#87560E] text-white cursor-pointer"
+            className="py-2 px-6 text-lg rounded-xl bg-gray-500 text-white cursor-pointer hover:bg-gray-600 transition disabled:opacity-50"
             onClick={() => {
               setPreview(null);
               setFile(null);
@@ -122,12 +94,13 @@ export default function Page() {
             Batal
           </button>
 
+          {/* Tombol Kirim: Merah sebagai aksen utama */}
           <button
             onClick={handleUpload}
             disabled={isUploading}
-            className="py-2 px-6 text-lg rounded-xl bg-[#E9AC50] text-white cursor-pointer"
+            className="py-2 px-6 text-lg rounded-xl bg-[#e10b16] text-white cursor-pointer hover:bg-red-600 transition disabled:opacity-50 flex items-center gap-2"
           >
-            {isUploading && <Loader size="sm" color="white" />} Kirim
+            {isUploading ? <Loader size="sm" color="white" /> : "Kirim"}
           </button>
         </div>
       }

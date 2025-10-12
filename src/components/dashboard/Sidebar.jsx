@@ -48,11 +48,11 @@ export default function Sidebar() {
                   href={menu.path}
                   className={`flex items-center gap-3 relative px-4 py-2 text-sm font-medium transition-all ${
                     active
-                      ? "bg-green-100 text-green-700"
+                      ? "bg-red-100 text-red-700"
                       : "text-gray-800 hover:bg-gray-100"
                   }`}
                 >
-                    {active && <div className="absolute h-full w-1 right-0 bg-[#3FA83A] rounded-l-2xl"></div>}
+                    {active && <div className="absolute h-full w-1 right-0 bg-[#e10b16] rounded-l-2xl"></div>}
                   <Icon icon={menu.icon} width={20} height={20} />
                   {menu.label}
                 </Link>

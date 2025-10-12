@@ -1,6 +1,5 @@
+import { Icon } from "@iconify/react"
 import Card from "@/components/dashboard/Card";
-import CopyClipboard from "@/components/CopyButton";
-import CopyButton from "@/components/CopyButton";
 
 export default function page() {
   const dummyUser = [
@@ -296,8 +295,6 @@ export default function page() {
       <div className="flex flex-wrap gap-6">
         {card.map((menu) => <Card key={menu.nama} nama={menu.nama} data={menu.data} bg={menu.bg} text={menu.text} icon={menu.icon} />)}
       </div>
-      <CopyButton text="Halo, ini teks yang mau disalin!" label="Laporan" />
-
     </div>
   )
 }

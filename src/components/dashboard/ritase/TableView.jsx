@@ -19,6 +19,7 @@ import RitaseModal from "./RitaseModal";
 import { modals } from "@mantine/modals";
 import dayjs from "dayjs";
 import "dayjs/locale/id";
+import { exportToExcel } from "@/components/Export";
 
 export default function TableView({ data }) {
   const [selectedRow, setSelectedRow] = useState(null);
@@ -101,6 +102,19 @@ useEffect(() => {
     label: item.plate,
   }));
 
+  const headers = {
+    id:"No",
+    name: "Nama Driver",
+            plate: "Plat Nomor",
+            category: "Kategori Driver",
+            destination: "Tujuan",
+            pickup: "Titik Jemput",
+            date:  "Tanggal",
+            ss: "Bukti SS"
+
+};
+
+
   return (
     <div className="w-full relative">
       {/* 🔍 Header Atas */}
@@ -113,7 +127,7 @@ useEffect(() => {
           className="w-full lg:w-1/3"
         />
         <Group justify="space-between">
-          <Button color="yellow" leftSection={<Icon icon="mdi:download" />}>
+          <Button color="yellow" leftSection={<Icon icon="mdi:download" />} onClick={() => exportToExcel(filteredData, "Ritase HMS.xlsx", headers)}>
             Unduh
           </Button>
           <Button
@@ -175,7 +189,7 @@ useEffect(() => {
                 />
               </Table.Th>
                 <Table.Th>NAMA</Table.Th>
-                <Table.Th>NO. POLISI</Table.Th>
+                <Table.Th>PLAT</Table.Th>
                 <Table.Th>JENIS</Table.Th>
                 <Table.Th>PICKUP POINT</Table.Th>
                 <Table.Th>TUJUAN</Table.Th>
@@ -267,6 +281,7 @@ useEffect(() => {
           data={editData}
           plat={platNo}
           onSubmit={handleSubmit}
+          closeOnClickOutside={false}
         />
 
         {/* 🖼️ Modal Preview SS */}

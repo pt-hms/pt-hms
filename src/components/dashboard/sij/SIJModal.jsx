@@ -12,20 +12,21 @@ import {
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import { useForm } from "@mantine/form";
 import { Icon } from "@iconify/react";
+import { DateInput, TimeInput } from "@mantine/dates";
 
 export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
   const [preview, setPreview] = useState(null);
   const form = useForm({
     initialValues: {
       plate: "",
-      pickup: "",
-      destination: "",
+      clock: "",
+      date: "",
       ss: null,
     },
     validate: {
       plate: (value) => (!value ? "Nomor polisi wajib diisi" : null),
-      pickup: (value) => (!value ? "Pickup point wajib diisi" : null),
-      destination: (value) => (!value ? "Tujuan wajib diisi" : null),
+      clock: (value) => (!value ? "Jam wajib diisi" : null),
+      date: (value) => (!value ? "Tanggal wajib diisi" : null),
     },
   });
 
@@ -71,8 +72,16 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
             label="Plat Nomor"
             data={plat} 
             {...form.getInputProps("plate")} />
-            <TextInput label="Pickup Point" {...form.getInputProps("pickup")} />
-            <TextInput label="Tujuan" {...form.getInputProps("destination")} />
+            <TimeInput
+            label="Jam"
+            {...form.getInputProps("clock")}
+            />
+            <DateInput
+                            label="Tanggal"
+                            locale="id"
+                            valueFormat="DD MMMM YYYY"
+                            {...form.getInputProps("date")}
+                          />
           </div>
 
           {/* Dropzone dengan Preview */}

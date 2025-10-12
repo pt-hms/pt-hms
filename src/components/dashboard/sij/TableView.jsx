@@ -15,11 +15,10 @@ import {
   Pagination,
 } from "@mantine/core";
 import { Icon } from "@iconify/react";
-import RitaseModal from "./DriverModal";
+import RitaseModal from "./SIJModal";
 import { modals } from "@mantine/modals";
 import dayjs from "dayjs";
 import "dayjs/locale/id";
-import { exportToExcel } from "@/components/Export";
 
 export default function TableView({ data }) {
   const [selectedRow, setSelectedRow] = useState(null);
@@ -97,19 +96,10 @@ useEffect(() => {
     modals.closeAll();
   };
 
-  const headers = {
-    id:"No",
-  name: "Nama Driver",
-            plate: "Plat Nomor",
-            category: "Kategori Driver",
-            car: "Mobil",
-            kep_number: "Nomor KEP",
-            period: "Masa Berakhir KEP",
-            phone: "No Telepon",
-            emergency_phone: "No Telepon Darurat",
-            password: "Password Driver",
-            profile: "Foto Profil",
-};
+  const platNo = data.map((item) => ({
+    value: item.plate,
+    label: item.plate,
+  }));
 
   return (
     <div className="w-full relative">
@@ -123,7 +113,7 @@ useEffect(() => {
           className="w-full lg:w-1/3"
         />
         <Group justify="space-between">
-          <Button color="yellow" leftSection={<Icon icon="mdi:download" />} onClick={() => exportToExcel(filteredData, "Driver PT HMS.xlsx", headers)}>
+          <Button color="yellow" leftSection={<Icon icon="mdi:download" />}>
             Unduh
           </Button>
           <Button
@@ -185,13 +175,10 @@ useEffect(() => {
                 />
               </Table.Th>
                 <Table.Th>NAMA</Table.Th>
-                <Table.Th>PLAT</Table.Th>
-                <Table.Th>MOBIL</Table.Th>
+                <Table.Th>PLAT NOMOR</Table.Th>
                 <Table.Th>JENIS</Table.Th>
-                <Table.Th>NO KEP</Table.Th>
-                <Table.Th>MASA BERLAKU</Table.Th>
-                <Table.Th>NO TELP</Table.Th>
-                <Table.Th>NO DARURAT</Table.Th>
+                <Table.Th>JAM</Table.Th>
+                <Table.Th>TANGGAL</Table.Th>
                 <Table.Th>AKSI</Table.Th>
             </Table.Tr>
           </Table.Thead>
@@ -210,20 +197,17 @@ useEffect(() => {
                 </Table.Td>
                 <Table.Td>{row.name}</Table.Td>
                 <Table.Td>{row.plate}</Table.Td>
-                <Table.Td>{row.car}</Table.Td>
                 <Table.Td>
                   <Badge color={row.category === "PREMIUM" ? "yellow" : "gray"}>
                     {row.category}
                   </Badge>
                 </Table.Td>
-                <Table.Td>{row.kep_number}</Table.Td>
+                <Table.Td>{row.clock}</Table.Td>
                 <Table.Td>
-              {row.period
-                ? dayjs(row.period).locale("id").format("D MMMM YYYY")
-                : "-"}
-          </Table.Td>
-                <Table.Td>{row.phone}</Table.Td>
-                <Table.Td>{row.emergency_phone}</Table.Td>
+                    {row.date
+                      ? dayjs(row.date).locale("id").format("D MMMM YYYY")
+                      : "-"}
+                </Table.Td>
                 <Table.Td className="text-center">
                   <Group justify="center" gap="xs">
                     <Button
@@ -232,11 +216,11 @@ useEffect(() => {
                       radius="xl"
                       size="xs"
                       onClick={() =>
-                        row.profile
+                        row.ss
                           ? setSsPreview(
-                              typeof row.profile === "string"
-                                ? row.profile
-                                : URL.createObjectURL(row.profile)
+                              typeof row.ss === "string"
+                                ? row.ss
+                                : URL.createObjectURL(row.ss)
                             )
                           : alert("Bukti SS belum tersedia")
                       }
@@ -279,6 +263,7 @@ useEffect(() => {
           opened={opened}
           onClose={() => setOpened(false)}
           data={editData}
+          plat={platNo}
           onSubmit={handleSubmit}
         />
 
@@ -286,7 +271,7 @@ useEffect(() => {
         <Modal
           opened={!!ssPreview}
           onClose={() => setSsPreview(null)}
-          title="Foto Driver"
+          title="Bukti SS"
           size="md"
           centered
           radius="lg"

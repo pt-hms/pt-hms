@@ -4,6 +4,7 @@ import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import { notifications } from "@mantine/notifications";
 import { Loader } from "@mantine/core";
 import { Icon } from "@iconify/react";
+import Image from "next/image";
 
 export default function Page() {
     const [preview, setPreview] = useState(null);
@@ -73,7 +74,7 @@ export default function Page() {
                 onDragLeave={(event) => event.currentTarget.classList.remove('scale-[1.02]', 'shadow-2xl')}
             >
                 {preview ? (
-                    <img
+                    <Image
                         src={preview}
                         alt="Preview Bukti Transfer"
                         className="max-w-full max-h-full object-contain rounded-2xl animate-fade-in"

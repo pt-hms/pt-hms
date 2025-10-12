@@ -22,7 +22,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="flex justify-center py-4">
         <Image
-          src="/logo.png" // ganti dengan path logo kamu (misal public/logo.png)
+          src="/icon.png"
           alt="KJHMS Logo"
           width={90}
           height={90}

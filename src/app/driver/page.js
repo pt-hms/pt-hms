@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import { notifications } from "@mantine/notifications";
 import { Loader } from "@mantine/core";
+import Image from "next/image";
 
 export default function Page() {
   const [preview, setPreview] = useState(null);
@@ -66,7 +67,7 @@ export default function Page() {
                    flex items-center justify-center cursor-pointer shadow-lg hover:bg-gray-100 transition p-2"
       >
         {preview ? (
-          <img
+          <Image
             src={preview}
             alt="Preview"
             className="w-full h-full object-cover rounded-2xl"

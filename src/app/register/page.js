@@ -166,12 +166,12 @@ export default function Page() {
     return (
         <div className="w-full min-h-dvh flex items-center justify-center bg-white text-black">
             <div className="w-[75%] mx-auto h-fit flex flex-col items-center gap-12 py-12">
-                <Image src={"/logo.png"} alt="" width={160} height={127} />
+                <Image src={"/icon.png"} alt="" width={160} height={127} />
 
                 <form onSubmit={form.onSubmit(handleSubmit)}>
                     <div className="flex flex-col items-center mb-5">
                         {preview ? (
-                            <img
+                            <Image
                                 src={preview}
                                 alt="Preview"
                                 className="w-32 h-32 rounded-full object-cover border mb-3"

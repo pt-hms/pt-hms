@@ -44,7 +44,7 @@ export default function page() {
       <div className="w-[85%] max-w-sm mx-auto h-full flex flex-col items-center gap-12">
 
         <Image
-          src={"/logo.png"}
+          src={"/icon.png"}
           alt="Logo Aplikasi"
           width={160}
           height={127}

@@ -32,7 +32,7 @@ export default function page() {
   return (
     <div className="w-full min-h-dvh flex items-center justify-center bg-white text-[#E9AC50]">
       <div className="w-[75%] mx-auto h-full flex flex-col items-center gap-12">
-        <Image src={"/logo.png"} alt="" width={160} height={127} />
+        <Image src={"/icon.png"} alt="" width={160} height={127} />
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <TextInput
             size="md"

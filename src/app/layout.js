@@ -7,6 +7,7 @@ import "./globals.css";
 import { MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import Script from "next/script";
+import { ModalsProvider } from "@mantine/modals";
 
 const geistSans = Geist({
    variable: "--font-geist-sans",
@@ -38,7 +39,9 @@ export default function RootLayout({ children }) {
                withNormalizeCSS
             >
                <Notifications />
-               {children}
+               <ModalsProvider>
+                  {children}
+               </ModalsProvider>
             </MantineProvider>
             <Script src="https://cdn.jsdelivr.net/npm/bluetooth-print-js@1.0/index.min.js" strategy="beforeInteractive" />
          </body>

@@ -1,8 +1,8 @@
 "use client"
 import { AppShell } from '@mantine/core'
 import React, { useEffect, useState } from 'react'
-import DashboardNavbar from '@/components/DashboardNavbar'
-import Sidebar from '@/components/Sidebar'
+import DashboardNavbar from '@/components/dashboard/DashboardNavbar'
+import Sidebar from '@/components/dashboard/Sidebar'
 import { useDisclosure, useHotkeys } from "@mantine/hooks";
 import Head from "next/head";
 import { usePathname } from 'next/navigation'

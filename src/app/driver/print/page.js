@@ -42,38 +42,28 @@ export default function print() {
    };
 
    return (
-      <>
-         {/* <main style={{ padding: "20px", fontFamily: "sans-serif" }}>
-            <h1>Bluetooth Print</h1>
-            <button id="connect" onClick={handleConnectAndPrint}>
-               Connect and Print
-            </button>
-            <p id="status"></p>
-         </main> */}
+      <Container size="xs" style={{ minHeight: "100vh", display: "flex", alignItems: "center" }}>
+         <Paper withBorder shadow="md" p="xl" radius="md" style={{ width: "100%" }}>
+            <Title order={2} ta="center" mb="lg" style={{ color: "#E9AC50" }}>
+               Cetak Antrean
+            </Title>
 
-         <Container size="xs" style={{ minHeight: "100vh", display: "flex", alignItems: "center" }}>
-            <Paper withBorder shadow="md" p="xl" radius="md" style={{ width: "100%" }}>
-               <Title order={2} ta="center" mb="lg" style={{ color: "#E9AC50" }}>
-                  Cetak Antrean
-               </Title>
+            <Center>
+               <Paper withBorder p="xl" radius="md" ta="center" mb="xl" bg="gray.0">
+                  <Text size="lg" c="dimmed">
+                     Nomor Berikutnya
+                  </Text>
+                  <Text fz={60} fw={700} style={{ color: "#E9AC50" }}>
+                     001
+                  </Text>
+               </Paper>
+            </Center>
 
-               <Center>
-                  <Paper withBorder p="xl" radius="md" ta="center" mb="xl" bg="gray.0">
-                     <Text size="lg" c="dimmed">
-                        Nomor Berikutnya
-                     </Text>
-                     <Text fz={60} fw={700} style={{ color: "#E9AC50" }}>
-                        001
-                     </Text>
-                  </Paper>
-               </Center>
-
-               <Button fullWidth color="#E9AC50" variant="filled" size="lg" radius="md" onClick={handleConnectAndPrint}>
-                  Cetak
-               </Button>
-               <p id="status" className="color-[#E9AC50]"></p>
-            </Paper>
-         </Container>
-      </>
+            <Button fullWidth color="#E9AC50" variant="filled" size="lg" radius="md" onClick={handleConnectAndPrint}>
+               Cetak
+            </Button>
+            <p id="status" className="color-[#E9AC50]"></p>
+         </Paper>
+      </Container>
    );
 }

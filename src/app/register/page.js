@@ -22,6 +22,12 @@ export default function Page() {
     const [stream, setStream] = useState(null);
     const videoRef = useRef(null);
     const canvasRef = useRef(null);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true); // menandai komponen sudah di client
+    }, []);
+
 
     // 🔹 Start Camera
     const startCamera = async () => {
@@ -158,7 +164,7 @@ export default function Page() {
 
 
     return (
-        <div className="w-full min-h-dvh flex items-center justify-center bg-white text-[#E9AC50]">
+        <div className="w-full min-h-dvh flex items-center justify-center bg-white text-black">
             <div className="w-[75%] mx-auto h-fit flex flex-col items-center gap-12 py-12">
                 <Image src={"/logo.png"} alt="" width={160} height={127} />
 
@@ -176,29 +182,34 @@ export default function Page() {
                             </div>
                         )}
 
-                        <Group>
-                            <FileButton onChange={handleFileUpload} accept="image/*">
-                                {(props) => (
-                                    <Button
-                                        {...props}
-                                        leftSection={<Icon icon="mdi:upload" width={18} />}
-                                        variant="light"
-                                        radius="md"
-                                    >
-                                        Upload
-                                    </Button>
-                                )}
-                            </FileButton>
-                            <Button
-                                leftSection={<Icon icon="mdi:camera" width={18} />}
-                                onClick={startCamera}
-                                variant="light"
-                                color="blue"
-                                radius="md"
-                            >
-                                Selfie
-                            </Button>
-                        </Group>
+                        {mounted && (
+                            <Group>
+                                <FileButton onChange={handleFileUpload} accept="image/*">
+                                    {(props) => (
+                                        <Button
+                                            {...props}
+                                            leftSection={<Icon icon="mdi:upload" width={18} />}
+                                            variant="light"
+                                            color="#e10b16"
+                                            radius="md"
+                                        >
+                                            Upload
+                                        </Button>
+                                    )}
+                                </FileButton>
+
+                                <Button
+                                    leftSection={<Icon icon="mdi:camera" width={18} />}
+                                    onClick={startCamera}
+                                    variant="light"
+                                    color="#e10b16"
+                                    radius="md"
+                                >
+                                    Selfie
+                                </Button>
+                            </Group>
+                        )}
+
 
                         {cameraActive && (
                             <div className="fixed inset-0 flex flex-col items-center justify-center bg-black/80 z-50">
@@ -212,7 +223,7 @@ export default function Page() {
                                 />
 
                                 <div className="mt-4 flex gap-3">
-                                    <Button onClick={capturePhoto} color="blue" radius="md">
+                                    <Button onClick={capturePhoto} color="#e10b16" radius="md">
                                         <Icon icon="mdi:camera" className="mr-2" /> Ambil Foto
                                     </Button>
                                     <Button onClick={stopCamera} color="red" radius="md">
@@ -448,7 +459,7 @@ export default function Page() {
 
                     <Button
                         fullWidth
-                        color="#E9AC50"
+                        color="#e10b16"
                         type="submit"
                         variant="filled"
                         size="md"

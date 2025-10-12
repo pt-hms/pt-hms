@@ -95,6 +95,6 @@ export default function page() {
             },
         ];
     return (
-        <div><TableView data={dummyData} /></div>
+        <div className='bg-white rounded-xl shadow p-6'><TableView data={dummyData} /></div>
     )
 }

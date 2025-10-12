@@ -49,7 +49,7 @@ export default function Dashboard({ children, title }) {
                     />
                 </div>
                 <h1 className="text-xl font-medium mb-5">{pageTitle}</h1>
-                <div className="bg-white rounded-xl shadow p-6">
+                <div>
                     {children}
                 </div>
             </AppShell.Main>

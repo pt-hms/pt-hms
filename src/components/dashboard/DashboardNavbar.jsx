@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Burger,
   Button,
@@ -19,6 +19,13 @@ export default function DashboardNavbar({
   toggle,
   opened,
 }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
   return (
     <>
       {/* Burger menu for small screens */}

@@ -11,6 +11,7 @@ import {
   Text,
   TextInput,
   Modal,
+  Select,
   Image,
   Pagination,
 } from "@mantine/core";
@@ -30,18 +31,34 @@ export default function TableView({ data }) {
   const [ssPreview, setSsPreview] = useState(null);
   const [page, setPage] = useState(1);
   const [filteredData, setFilteredData] = useState(data);
+  const [timeFilter, setTimeFilter] = useState(null);
   const itemsPerPage = 10;
 
-useEffect(() => {
-  setFilteredData(
-    data.filter(
-      (d) =>
-        d.plate.toLowerCase().includes(search.toLowerCase()) ||
-        d.name.toLowerCase().includes(search.toLowerCase())
-    )
-  );
-}, [search, data]);
+  const hours = Array.from({ length: 18 }, (_, i) => {
+    const hour = 7 + i;
+    const label = hour.toString().padStart(2, "0") + ":00";
+    return { value: label, label };
+  });
 
+  useEffect(() => {
+  setFilteredData(
+    data.filter((d) => {
+      const matchSearch =
+        d.plate.toLowerCase().includes(search.toLowerCase()) ||
+        d.name.toLowerCase().includes(search.toLowerCase());
+
+      let matchTime = true;
+      if (timeFilter && d.time) {
+        const rowHour = parseInt(d.time.split(":")[0], 10); // ambil jam dari "HH:mm"
+        const filterHour = parseInt(timeFilter.split(":")[0], 10);
+        matchTime = rowHour === filterHour; // semua jam yang sama dengan jam filter
+      }
+
+      return matchSearch && matchTime;
+    })
+  );
+  setPage(1);
+}, [search, data, timeFilter]);
 
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -66,7 +83,7 @@ useEffect(() => {
     else console.log("Create data:", form);
   };
 
-   const openDeleteConfirm = (ids) => {
+  const openDeleteConfirm = (ids) => {
     modals.openConfirmModal({
       title: "Konfirmasi Hapus",
       centered: true,
@@ -88,11 +105,9 @@ useEffect(() => {
   const handleDelete = (ids) => {
     if (Array.isArray(ids)) {
       console.log("Menghapus beberapa ID:", ids);
-      // Nanti ganti dengan API delete batch
       setCheckedRows([]);
     } else {
       console.log("Menghapus ID:", ids);
-      // Nanti ganti dengan API delete single
     }
     modals.closeAll();
   };
@@ -103,18 +118,18 @@ useEffect(() => {
   }));
 
   const headers = {
-    id:"No",
+    id: "No",
     name: "Nama Driver",
-            plate: "Plat Nomor",
-            category: "Kategori Driver",
-            destination: "Tujuan",
-            pickup: "Titik Jemput",
-            date:  "Tanggal",
-            ss: "Bukti SS"
+    plate: "Plat Nomor",
+    category: "Kategori Driver",
+    destination: "Tujuan",
+    pickup: "Titik Jemput",
+    date: "Tanggal",
+    time: "Jam",
+    ss: "Bukti SS",
+  };
 
-};
-
-const [mounted, setMounted] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -122,11 +137,10 @@ const [mounted, setMounted] = useState(false);
 
   if (!mounted) return null;
 
-
   return (
     <div className="w-full relative">
       {/* 🔍 Header Atas */}
-      <Group justify="space-between" className="p-4">
+      <Group justify="space-between" className="p-4 flex-wrap gap-3">
         <TextInput
           placeholder="Cari"
           value={search}
@@ -134,8 +148,19 @@ const [mounted, setMounted] = useState(false);
           leftSection={<Icon icon="mdi:magnify" />}
           className="w-full lg:w-1/3"
         />
-        <Group justify="space-between">
-          <Button color="yellow" leftSection={<Icon icon="mdi:download" />} onClick={() => exportToExcel(filteredData, "Ritase HMS.xlsx", headers)}>
+        <Select
+          placeholder="Filter Jam"
+          value={timeFilter}
+          onChange={setTimeFilter}
+          data={hours}
+          className="w-full lg:w-40"
+        />
+        <Group>
+          <Button
+            color="yellow"
+            leftSection={<Icon icon="mdi:download" />}
+            onClick={() => exportToExcel(filteredData, "Ritase HMS.xlsx", headers)}
+          >
             Unduh
           </Button>
           <Button
@@ -154,55 +179,54 @@ const [mounted, setMounted] = useState(false);
       {/* 🔹 Table */}
       <Box className="w-full bg-white shadow-sm rounded-xl overflow-x-auto border border-gray-100">
         {checkedRows.length > 0 && (
-        <Box className="flex items-center justify-between bg-red-50 border-b border-red-200 px-4 py-2">
-          <Text size="sm" className="text-red-700 font-medium">
-            {checkedRows.length} data terpilih
-          </Text>
-          <Button
-            color="red"
-            size="xs"
-            leftSection={<Icon icon="mdi:trash-can" width={16} />}
-            onClick={() => openDeleteConfirm(checkedRows)}
-          >
-            Hapus Data Terpilih
-          </Button>
-        </Box>
-      )}
+          <Box className="flex items-center justify-between bg-red-50 border-b border-red-200 px-4 py-2">
+            <Text size="sm" className="text-red-700 font-medium">
+              {checkedRows.length} data terpilih
+            </Text>
+            <Button
+              color="red"
+              size="xs"
+              leftSection={<Icon icon="mdi:trash-can" width={16} />}
+              onClick={() => openDeleteConfirm(checkedRows)}
+            >
+              Hapus Data Terpilih
+            </Button>
+          </Box>
+        )}
         <Table striped highlightOnHover withColumnBorders>
           <Table.Thead className="bg-gray-50">
             <Table.Tr>
               <Table.Th>
                 <Checkbox
-                        checked={
-            paginatedData.length > 0 &&
-            paginatedData.every((row) => checkedRows.includes(row.id))
-            }
-            indeterminate={
-            paginatedData.some((row) => checkedRows.includes(row.id)) &&
-            !paginatedData.every((row) => checkedRows.includes(row.id))
-            }
-            onChange={(e) => {
-            if (e.currentTarget.checked) {
-                // ✅ Tambah semua ID di halaman ini ke daftar checked
-                setCheckedRows((prev) => [
-                ...new Set([...prev, ...paginatedData.map((d) => d.id)]),
-                ]);
-            } else {
-                // ❌ Hapus semua ID di halaman ini
-                setCheckedRows((prev) =>
-                prev.filter((id) => !paginatedData.map((d) => d.id).includes(id))
-                );
-            }
-            }}
+                  checked={
+                    paginatedData.length > 0 &&
+                    paginatedData.every((row) => checkedRows.includes(row.id))
+                  }
+                  indeterminate={
+                    paginatedData.some((row) => checkedRows.includes(row.id)) &&
+                    !paginatedData.every((row) => checkedRows.includes(row.id))
+                  }
+                  onChange={(e) => {
+                    if (e.currentTarget.checked) {
+                      setCheckedRows((prev) => [
+                        ...new Set([...prev, ...paginatedData.map((d) => d.id)]),
+                      ]);
+                    } else {
+                      setCheckedRows((prev) =>
+                        prev.filter((id) => !paginatedData.map((d) => d.id).includes(id))
+                      );
+                    }
+                  }}
                 />
               </Table.Th>
-                <Table.Th>NAMA</Table.Th>
-                <Table.Th>PLAT</Table.Th>
-                <Table.Th>JENIS</Table.Th>
-                <Table.Th>PICKUP POINT</Table.Th>
-                <Table.Th>TUJUAN</Table.Th>
-                <Table.Th>TANGGAL</Table.Th>
-                <Table.Th>AKSI</Table.Th>
+              <Table.Th>NAMA</Table.Th>
+              <Table.Th>PLAT</Table.Th>
+              <Table.Th>JENIS</Table.Th>
+              <Table.Th>PICKUP POINT</Table.Th>
+              <Table.Th>TUJUAN</Table.Th>
+              <Table.Th>JAM</Table.Th>
+              <Table.Th>TANGGAL</Table.Th>
+              <Table.Th>AKSI</Table.Th>
             </Table.Tr>
           </Table.Thead>
 
@@ -221,17 +245,16 @@ const [mounted, setMounted] = useState(false);
                 <Table.Td>{row.name}</Table.Td>
                 <Table.Td>{row.plate}</Table.Td>
                 <Table.Td>
-                  <Badge color={row.category === "PREMIUM" ? "yellow" : "gray"}>
-                    {row.category}
-                  </Badge>
+                  <Badge color={row.category === "PREMIUM" ? "#e10b16" : "gray"} fullWidth size="md">{row.category}</Badge>
                 </Table.Td>
                 <Table.Td>{row.pickup}</Table.Td>
                 <Table.Td>{row.destination}</Table.Td>
+                <Table.Td>{row.time || "-"}</Table.Td>
                 <Table.Td>
-              {row.date
-                ? dayjs(row.date).locale("id").format("D MMMM YYYY")
-                : "-"}
-          </Table.Td>
+                  {row.date
+                    ? dayjs(row.date).locale("id").format("D MMMM YYYY")
+                    : "-"}
+                </Table.Td>
                 <Table.Td className="text-center">
                   <Group justify="center" gap="xs">
                     <Button
@@ -268,7 +291,6 @@ const [mounted, setMounted] = useState(false);
           </Table.Tbody>
         </Table>
 
-        {/* ✅ Pagination */}
         {totalPages > 1 && (
           <Group justify="center" className="p-4 border-t border-gray-100">
             <Pagination
@@ -282,7 +304,6 @@ const [mounted, setMounted] = useState(false);
           </Group>
         )}
 
-        {/* 🧩 Modal Create/Edit */}
         <RitaseModal
           opened={opened}
           onClose={() => setOpened(false)}
@@ -292,7 +313,6 @@ const [mounted, setMounted] = useState(false);
           closeOnClickOutside={false}
         />
 
-        {/* 🖼️ Modal Preview SS */}
         <Modal
           opened={!!ssPreview}
           onClose={() => setSsPreview(null)}
@@ -302,12 +322,7 @@ const [mounted, setMounted] = useState(false);
           radius="lg"
         >
           {ssPreview ? (
-            <Image
-              src={ssPreview}
-              alt="Bukti SS"
-              width="100%"
-              radius="md"
-            />
+            <Image src={ssPreview} alt="Bukti SS" width="100%" radius="md" />
           ) : (
             <Text c="dimmed" ta="center">
               Tidak ada gambar untuk ditampilkan.
@@ -315,46 +330,46 @@ const [mounted, setMounted] = useState(false);
           )}
         </Modal>
       </Box>
-      {/* ✅ Detail Panel */}
-        {selectedRow && (
-          <Box className="p-4 border-t border-gray-200 bg-gray-50 flex flex-wrap items-center justify-between sticky bottom-0 w-full">
-            <Text size="sm" className="text-gray-700">
-              Data Driver Terpilih dengan Plat Nomor:{" "}
-              <span className="font-semibold">{selectedRow.plate}</span>
-            </Text>
 
-            <Group gap="xs">
-              <Button
-                size="xs"
-                color="blue"
-                leftSection={<Icon icon="mdi:pencil" width={16} />}
-                onClick={() => {
-                  setEditData(selectedRow);
-                  setOpened(true);
-                }}
-              >
-                Edit
-              </Button>
-              <Button
-                size="xs"
-                color="red"
-                leftSection={<Icon icon="mdi:trash-can" width={16} />}
-                onClick={() => openDeleteConfirm(selectedRow.id)}
-              >
-                Hapus
-              </Button>
-              <Button
-                size="xs"
-                color="gray"
-                variant="default"
-                leftSection={<Icon icon="mdi:close" width={16} />}
-                onClick={() => setSelectedRow(null)}
-              >
-                Tutup
-              </Button>
-            </Group>
-          </Box>
-        )}
+      {selectedRow && (
+        <Box className="p-4 border-t border-gray-200 bg-gray-50 flex flex-wrap items-center justify-between sticky bottom-0 w-full">
+          <Text size="sm" className="text-gray-700">
+            Data Driver Terpilih dengan Plat Nomor:{" "}
+            <span className="font-semibold">{selectedRow.plate}</span>
+          </Text>
+
+          <Group gap="xs">
+            <Button
+              size="xs"
+              color="blue"
+              leftSection={<Icon icon="mdi:pencil" width={16} />}
+              onClick={() => {
+                setEditData(selectedRow);
+                setOpened(true);
+              }}
+            >
+              Edit
+            </Button>
+            <Button
+              size="xs"
+              color="red"
+              leftSection={<Icon icon="mdi:trash-can" width={16} />}
+              onClick={() => openDeleteConfirm(selectedRow.id)}
+            >
+              Hapus
+            </Button>
+            <Button
+              size="xs"
+              color="gray"
+              variant="default"
+              leftSection={<Icon icon="mdi:close" width={16} />}
+              onClick={() => setSelectedRow(null)}
+            >
+              Tutup
+            </Button>
+          </Group>
+        </Box>
+      )}
     </div>
   );
 }

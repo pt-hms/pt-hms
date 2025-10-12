@@ -19,13 +19,13 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
   const form = useForm({
     initialValues: {
       plate: "",
-      clock: "",
+      time: "",
       date: "",
       ss: null,
     },
     validate: {
       plate: (value) => (!value ? "Nomor polisi wajib diisi" : null),
-      clock: (value) => (!value ? "Jam wajib diisi" : null),
+      time: (value) => (!value ? "Jam wajib diisi" : null),
       date: (value) => (!value ? "Tanggal wajib diisi" : null),
     },
   });
@@ -74,14 +74,14 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
             {...form.getInputProps("plate")} />
             <TimeInput
             label="Jam"
-            {...form.getInputProps("clock")}
+            {...form.getInputProps("time")}
             />
             <DateInput
-                            label="Tanggal"
-                            locale="id"
-                            valueFormat="DD MMMM YYYY"
-                            {...form.getInputProps("date")}
-                          />
+              label="Tanggal"
+              locale="id"
+              valueFormat="DD MMMM YYYY"
+              {...form.getInputProps("date")}
+              />
           </div>
 
           {/* Dropzone dengan Preview */}

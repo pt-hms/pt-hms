@@ -13,6 +13,7 @@ import {
   Modal,
   Image,
   Pagination,
+  Select,
 } from "@mantine/core";
 import { Icon } from "@iconify/react";
 import RitaseModal from "./SIJModal";
@@ -29,17 +30,35 @@ export default function TableView({ data }) {
   const [ssPreview, setSsPreview] = useState(null);
   const [page, setPage] = useState(1);
   const [filteredData, setFilteredData] = useState(data);
+  const [timeFilter, setTimeFilter] = useState(null);
   const itemsPerPage = 10;
 
-useEffect(() => {
+  const hours = Array.from({ length: 18 }, (_, i) => {
+    const hour = 7 + i;
+    const label = hour.toString().padStart(2, "0") + ":00";
+    return { value: label, label };
+  });
+
+  useEffect(() => {
   setFilteredData(
-    data.filter(
-      (d) =>
+    data.filter((d) => {
+      const matchSearch =
         d.plate.toLowerCase().includes(search.toLowerCase()) ||
-        d.name.toLowerCase().includes(search.toLowerCase())
-    )
+        d.name.toLowerCase().includes(search.toLowerCase());
+
+      let matchTime = true;
+      if (timeFilter && d.time) {
+        const rowHour = parseInt(d.time.split(":")[0], 10); // ambil jam dari "HH:mm"
+        const filterHour = parseInt(timeFilter.split(":")[0], 10);
+        matchTime = rowHour === filterHour; // semua jam yang sama dengan jam filter
+      }
+
+      return matchSearch && matchTime;
+    })
   );
-}, [search, data]);
+  setPage(1);
+}, [search, data, timeFilter]);
+
 
 
 
@@ -119,6 +138,13 @@ useEffect(() => {
           onChange={(e) => setSearch(e.currentTarget.value)}
           leftSection={<Icon icon="mdi:magnify" />}
           className="w-full lg:w-1/3"
+        />
+        <Select
+          placeholder="Filter Jam"
+          value={timeFilter}
+          onChange={setTimeFilter}
+          data={hours}
+          className="w-full lg:w-40"
         />
         <Group justify="space-between">
           <Button color="yellow" leftSection={<Icon icon="mdi:download" />}>
@@ -206,11 +232,11 @@ useEffect(() => {
                 <Table.Td>{row.name}</Table.Td>
                 <Table.Td>{row.plate}</Table.Td>
                 <Table.Td>
-                  <Badge color={row.category === "PREMIUM" ? "yellow" : "gray"}>
+                  <Badge color={row.category === "PREMIUM" ? "#e10b16" : "gray"} fullWidth size="md">
                     {row.category}
                   </Badge>
                 </Table.Td>
-                <Table.Td>{row.clock}</Table.Td>
+                <Table.Td>{row.time}</Table.Td>
                 <Table.Td>
                     {row.date
                       ? dayjs(row.date).locale("id").format("D MMMM YYYY")

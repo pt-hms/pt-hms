@@ -220,7 +220,7 @@ useEffect(() => {
                 <Table.Td>{row.plate}</Table.Td>
                 <Table.Td>{row.car}</Table.Td>
                 <Table.Td>
-                  <Badge color={row.category === "PREMIUM" ? "yellow" : "gray"}>
+                  <Badge color={row.category === "PREMIUM" ? "#e10b16" : "gray"} fullWidth size="md">
                     {row.category}
                   </Badge>
                 </Table.Td>

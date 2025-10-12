@@ -10,6 +10,7 @@ export default function page() {
       destination: "Jakarta",
       ss: "/profil.jpeg",
       date: "2025-10-11",
+      time: "08:30",
     },
     {
       id: 2,
@@ -20,6 +21,7 @@ export default function page() {
       destination: "Depok",
       ss: "/profil.jpeg",
       date: "2025-10-10",
+      time: "09:15",
     },
     {
       id: 3,
@@ -30,6 +32,7 @@ export default function page() {
       destination: "Jakarta Selatan",
       ss: "/profil.jpeg",
       date: "2025-10-09",
+      time: "14:45",
     },
     {
       id: 4,
@@ -40,6 +43,7 @@ export default function page() {
       destination: "Bogor",
       ss: "/profil.jpeg",
       date: "2025-10-08",
+      time: "07:30",
     },
     {
       id: 5,
@@ -50,6 +54,7 @@ export default function page() {
       destination: "Bekasi",
       ss: "/profil.jpeg",
       date: "2025-10-07",
+      time: "12:00",
     },
     {
       id: 6,
@@ -60,6 +65,7 @@ export default function page() {
       destination: "Jakarta Timur",
       ss: "/profil.jpeg",
       date: "2025-10-06",
+      time: "10:45",
     },
     {
       id: 7,
@@ -70,6 +76,7 @@ export default function page() {
       destination: "Cibubur",
       ss: "/profil.jpeg",
       date: "2025-10-05",
+      time: "16:00",
     },
     {
       id: 8,
@@ -80,6 +87,7 @@ export default function page() {
       destination: "Depok",
       ss: "/profil.jpeg",
       date: "2025-10-04",
+      time: "19:30",
     },
     {
       id: 9,
@@ -90,6 +98,7 @@ export default function page() {
       destination: "Tangerang",
       ss: "/profil.jpeg",
       date: "2025-10-03",
+      time: "07:45",
     },
     {
       id: 10,
@@ -100,6 +109,7 @@ export default function page() {
       destination: "Jakarta Pusat",
       ss: "/profil.jpeg",
       date: "2025-10-02",
+      time: "11:00",
     },
     {
       id: 11,
@@ -110,6 +120,7 @@ export default function page() {
       destination: "Jakarta Barat",
       ss: "/profil.jpeg",
       date: "2025-10-01",
+      time: "15:30",
     },
     {
       id: 12,
@@ -120,8 +131,10 @@ export default function page() {
       destination: "Bogor Selatan",
       ss: "/profil.jpeg",
       date: "2025-09-30",
+      time: "21:00",
     },
-  ]
+  ];
+
   return (
     <div className="bg-white rounded-xl shadow p-6">
       <TableView data={dummyData} />

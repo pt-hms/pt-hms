@@ -1,7 +1,7 @@
 {
-   "name": "KJHMS",
-   "short_name": "KJHMS",
-   "description": "A modern PWA for KJHMS project.",
+   "name": "PT HMS",
+   "short_name": "PT HMS",
+   "description": "PT HMS App",
    "start_url": "/",
    "display": "standalone",
    "background_color": "#ffffff",

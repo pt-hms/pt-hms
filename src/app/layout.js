@@ -20,8 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-   title: "KJHMS",
-   description: "KJHMS Order App",
+   title: "PT HMS",
+   description: "PT HMS App",
    manifest: "/manifest.json",
    icons: {
       icon: "/icons/icon-192x192.png",

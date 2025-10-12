@@ -16,7 +16,7 @@ export default function Dashboard({ children, title }) {
         "/admin/driver": "Driver",
         "/admin/sij": "Surat Izin Jalan",
         "/admin/order": "Riwayat Ritase",
-    }[pathname] || "KJHMS";
+    }[pathname] || "PT HMS";
     return (
         <AppShell
             padding="md"

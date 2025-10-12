@@ -23,7 +23,7 @@ export default function Sidebar() {
       <div className="flex justify-center py-4">
         <Image
           src="/icon.png"
-          alt="KJHMS Logo"
+          alt="PT HMS Logo"
           width={90}
           height={90}
           className="object-contain"

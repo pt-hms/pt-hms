@@ -90,10 +90,10 @@ export default function Page() {
     const form = useForm({
         initialValues: {
             name: "",
-            plat: "",
+            plate: "",
             category: "",
-            car_name: "",
-            no_kep: "",
+            car: "",
+            kep_number: "",
             period: null,
             phone: "",
             emergency_phone: "",
@@ -103,14 +103,33 @@ export default function Page() {
         },
         validate: {
             name: (value) => (!value.trim() ? "Nama wajib diisi" : null),
-            plat: (value) => (!value.trim() ? "Plat nomor wajib diisi" : null),
+            plate: (value) => (!value.trim() ? "Plat nomor wajib diisi" : null),
             category: (value) => (!value.trim() ? "Kategori driver wajib diisi" : null),
-            car_name: (value) => (!value.trim() ? "Nama mobil wajib diisi" : null),
-            no_kep: (value) => (!value.trim() ? "Nomor KEP wajib diisi" : null),
+            car: (value) => (!value.trim() ? "Nama mobil wajib diisi" : null),
+            kep_number: (value) => (!value.trim() ? "Nomor KEP wajib diisi" : null),
             period: (value) => (!value ? "Tanggal berlaku kartu wajib diisi" : null),
-            phone: (value) => (!value.trim() ? "Nomor telepon wajib diisi" : null),
-            emergency_phone: (value) =>
-                !value.trim() ? "Nomor telepon darurat wajib diisi" : null,
+            phone: (value) => {
+                const trimmed = value.trim();
+                if (!trimmed) return "Nomor telepon wajib diisi";
+                if (!/^[0-9]+$/.test(trimmed)) {
+                    return "Nomor telepon hanya boleh berisi angka";
+                }
+                if (trimmed.length < 10 || trimmed.length > 15) {
+                    return "Nomor telepon harus 10–15 digit";
+                }
+                return null;
+            },
+            emergency_phone: (value) => {
+                const trimmed = value.trim();
+                if (!trimmed) return "Nomor telepon wajib diisi";
+                if (!/^[0-9]+$/.test(trimmed)) {
+                    return "Nomor telepon hanya boleh berisi angka";
+                }
+                if (trimmed.length < 10 || trimmed.length > 15) {
+                    return "Nomor telepon harus 10–15 digit";
+                }
+                return null;
+            },
             password: (value) =>
                 !value.trim()
                     ? "Password wajib diisi"
@@ -233,7 +252,7 @@ export default function Page() {
                         withAsterisk
                         placeholder="Masukkan plat nomor"
                         mb="md"
-                        {...form.getInputProps("plat")}
+                        {...form.getInputProps("plate")}
                         className="md:hidden"
                     />
                     <TextInput
@@ -283,7 +302,7 @@ export default function Page() {
                         withAsterisk
                         placeholder="Masukkan nama mobil"
                         mb="md"
-                        {...form.getInputProps("car_name")}
+                        {...form.getInputProps("car")}
                         className="md:hidden"
                     />
                     <TextInput
@@ -293,7 +312,7 @@ export default function Page() {
                         withAsterisk
                         placeholder="Masukkan nama mobil"
                         mb="md"
-                        {...form.getInputProps("car_name")}
+                        {...form.getInputProps("car")}
                         className="hidden md:block"
                     />
 
@@ -304,7 +323,7 @@ export default function Page() {
                         withAsterisk
                         placeholder="Masukkan nomor KEP"
                         mb="md"
-                        {...form.getInputProps("no_kep")}
+                        {...form.getInputProps("kep_number")}
                         className="md:hidden"
                     />
                     <TextInput
@@ -314,7 +333,7 @@ export default function Page() {
                         withAsterisk
                         placeholder="Masukkan nomor KEP"
                         mb="md"
-                        {...form.getInputProps("no_kep")}
+                        {...form.getInputProps("kep_number")}
                         className="hidden md:block"
                     />
 

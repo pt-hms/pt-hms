@@ -18,8 +18,6 @@ import Image from "next/image";
 export default function DashboardNavbar({
   toggle,
   opened,
-  setDarkMode,
-  darkMode,
 }) {
   return (
     <>
@@ -28,7 +26,6 @@ export default function DashboardNavbar({
         onClick={toggle}
         size="sm"
         className="ml-2 duration-[400ms]"
-        color={darkMode ? "white" : "black"}
       />
 
       {/* Drawer for mobile sidebar */}

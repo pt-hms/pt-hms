@@ -15,7 +15,7 @@ import {
   Pagination,
 } from "@mantine/core";
 import { Icon } from "@iconify/react";
-import RitaseModal from "./RitaseModal";
+import RitaseModal from "./DriverModal";
 import { modals } from "@mantine/modals";
 import dayjs from "dayjs";
 import "dayjs/locale/id";
@@ -96,11 +96,6 @@ useEffect(() => {
     modals.closeAll();
   };
 
-  const platNo = data.map((item) => ({
-    value: item.plate,
-    label: item.plate,
-  }));
-
   return (
     <div className="w-full relative">
       {/* 🔍 Header Atas */}
@@ -175,11 +170,13 @@ useEffect(() => {
                 />
               </Table.Th>
                 <Table.Th>NAMA</Table.Th>
-                <Table.Th>NO. POLISI</Table.Th>
+                <Table.Th>PLAT</Table.Th>
+                <Table.Th>MOBIL</Table.Th>
                 <Table.Th>JENIS</Table.Th>
-                <Table.Th>PICKUP POINT</Table.Th>
-                <Table.Th>TUJUAN</Table.Th>
-                <Table.Th>TANGGAL</Table.Th>
+                <Table.Th>NO KEP</Table.Th>
+                <Table.Th>BERLAKU</Table.Th>
+                <Table.Th>NO TELP</Table.Th>
+                <Table.Th>NO DARURAT</Table.Th>
                 <Table.Th>AKSI</Table.Th>
             </Table.Tr>
           </Table.Thead>
@@ -198,18 +195,20 @@ useEffect(() => {
                 </Table.Td>
                 <Table.Td>{row.name}</Table.Td>
                 <Table.Td>{row.plate}</Table.Td>
+                <Table.Td>{row.car}</Table.Td>
                 <Table.Td>
                   <Badge color={row.category === "PREMIUM" ? "yellow" : "gray"}>
                     {row.category}
                   </Badge>
                 </Table.Td>
-                <Table.Td>{row.pickup}</Table.Td>
-                <Table.Td>{row.destination}</Table.Td>
+                <Table.Td>{row.kep_number}</Table.Td>
                 <Table.Td>
-              {row.date
-                ? dayjs(row.date).locale("id").format("D MMMM YYYY")
+              {row.period
+                ? dayjs(row.period).locale("id").format("D MMMM YYYY")
                 : "-"}
           </Table.Td>
+                <Table.Td>{row.phone}</Table.Td>
+                <Table.Td>{row.emergency_phone}</Table.Td>
                 <Table.Td className="text-center">
                   <Group justify="center" gap="xs">
                     <Button
@@ -218,11 +217,11 @@ useEffect(() => {
                       radius="xl"
                       size="xs"
                       onClick={() =>
-                        row.ss
+                        row.profile
                           ? setSsPreview(
-                              typeof row.ss === "string"
-                                ? row.ss
-                                : URL.createObjectURL(row.ss)
+                              typeof row.profile === "string"
+                                ? row.profile
+                                : URL.createObjectURL(row.profile)
                             )
                           : alert("Bukti SS belum tersedia")
                       }
@@ -265,7 +264,6 @@ useEffect(() => {
           opened={opened}
           onClose={() => setOpened(false)}
           data={editData}
-          plat={platNo}
           onSubmit={handleSubmit}
         />
 
@@ -273,7 +271,7 @@ useEffect(() => {
         <Modal
           opened={!!ssPreview}
           onClose={() => setSsPreview(null)}
-          title="Bukti SS"
+          title="Foto Driver"
           size="md"
           centered
           radius="lg"

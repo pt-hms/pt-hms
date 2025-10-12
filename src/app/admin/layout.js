@@ -12,8 +12,9 @@ export default function Dashboard({ children, title }) {
     const pathname = usePathname();
 
     const pageTitle = {
+        "/admin": "Dashboard",
         "/admin/driver": "Driver",
-        "/admin/sda": "Dashboard",
+        "/admin/sij": "Surat Izin Jalan",
         "/admin/order": "Riwayat Ritase",
     }[pathname] || "KJHMS";
     return (

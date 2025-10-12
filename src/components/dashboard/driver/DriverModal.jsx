@@ -8,24 +8,63 @@ import {
   Group,
   Box,
   Image,
+  PasswordInput,
 } from "@mantine/core";
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import { useForm } from "@mantine/form";
 import { Icon } from "@iconify/react";
+import { DateInput } from "@mantine/dates";
 
-export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
+export default function DriverModal({ opened, onClose, data, plat, onSubmit }) {
   const [preview, setPreview] = useState(null);
   const form = useForm({
     initialValues: {
-      plate: "",
-      pickup: "",
-      destination: "",
-      ss: null,
-    },
-    validate: {
-      plate: (value) => (!value ? "Nomor polisi wajib diisi" : null),
-      pickup: (value) => (!value ? "Pickup point wajib diisi" : null),
-      destination: (value) => (!value ? "Tujuan wajib diisi" : null),
+       name: "",
+            plate: "",
+            category: "",
+            car: "",
+            kep_number: "",
+            period: null,
+            phone: "",
+            emergency_phone: "",
+            password: "",
+            profile: null,
+        },
+        validate: {
+            name: (value) => (!value.trim() ? "Nama wajib diisi" : null),
+            plat: (value) => (!value.trim() ? "Plat nomor wajib diisi" : null),
+            category: (value) => (!value.trim() ? "Kategori driver wajib diisi" : null),
+            car: (value) => (!value.trim() ? "Nama mobil wajib diisi" : null),
+            kep_number: (value) => (!value.trim() ? "Nomor KEP wajib diisi" : null),
+            period: (value) => (!value ? "Tanggal berlaku kartu wajib diisi" : null),
+            phone: (value) => {
+                const trimmed = value.trim();
+                if (!trimmed) return "Nomor telepon wajib diisi";
+                if (!/^[0-9]+$/.test(trimmed)) {
+                    return "Nomor telepon hanya boleh berisi angka";
+                }
+                if (trimmed.length < 10 || trimmed.length > 15) {
+                    return "Nomor telepon harus 10–15 digit";
+                }
+                return null;
+            },
+            emergency_phone: (value) => {
+                const trimmed = value.trim();
+                if (!trimmed) return "Nomor telepon wajib diisi";
+                if (!/^[0-9]+$/.test(trimmed)) {
+                    return "Nomor telepon hanya boleh berisi angka";
+                }
+                if (trimmed.length < 10 || trimmed.length > 15) {
+                    return "Nomor telepon harus 10–15 digit";
+                }
+                return null;
+            },
+            password: (value) =>
+                !value.trim()
+                    ? "Password wajib diisi"
+                    : value.trim().length < 6
+                        ? "Password minimal 6 karakter"
+                        : null
     },
   });
 
@@ -33,7 +72,7 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
   useEffect(() => {
     if (data) {
       form.setValues(data);
-      if (data.ss) setPreview(data.ss);
+      if (data.profile) setPreview(data.profile);
     } else {
       form.reset();
       setPreview(null);
@@ -58,7 +97,7 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
         setPreview(null);
         onClose();
       }}
-      title={data ? "Ubah Data Ritase" : "Tambah Data Ritase"}
+      title={data ? "Ubah Data Driver" : "Tambah Data Driver"}
       centered
       size="lg"
       radius="lg"
@@ -66,13 +105,29 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
       <Box component="form" onSubmit={form.onSubmit(handleSubmit)}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Bagian Input Data */}
-          <div className="grid grid-cols-1 gap-3 lg:col-span-2">
-            <Select 
-            label="No. Polisi"
-            data={plat} 
-            {...form.getInputProps("plate")} />
-            <TextInput label="Pickup Point" {...form.getInputProps("pickup")} />
-            <TextInput label="Tujuan" {...form.getInputProps("destination")} />
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:col-span-2">
+            <TextInput label="Nama Lengkap Driver" {...form.getInputProps("name")} />
+            <TextInput label="Plat Nomor" {...form.getInputProps("plate")} />
+            <Select
+              label="Kategori Driver"
+              placeholder="Pilih kategori"
+              data={[
+                { value: "PREMIUM", label: "Premium" },
+                { value: "REGULER", label: "Reguler" },
+              ]}
+              {...form.getInputProps("category")} // pastikan ambil dari field "type"
+            />
+
+            <TextInput label="Nomor KEP" {...form.getInputProps("kep_number")} />
+             <DateInput
+                label="Tanggal Berakhir KEP"
+                locale="id"
+                valueFormat="DD MMMM YYYY"
+                {...form.getInputProps("period")}
+              />
+            <TextInput label="No Telepon" {...form.getInputProps("phone")} />
+            <TextInput label="No Telepon Darurat" {...form.getInputProps("emergency_phone")} />
+            <PasswordInput label="Password" {...form.getInputProps("password")} />
           </div>
 
           {/* Dropzone dengan Preview */}
@@ -100,7 +155,7 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
                     color="#1c7ed6"
                   />
                   <p className="mt-2 text-sm font-medium">
-                    Klik atau tarik file bukti SS
+                    Klik atau tarik foto driver
                   </p>
                   <p className="text-xs text-gray-400">
                     (Hanya PNG atau JPG, rasio layar HP disarankan)
@@ -138,7 +193,7 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
           </div>
         </div>
 
-        <Group position="center" mt="lg">
+        <Group className="w-full mx-auto" mt="lg">
           <Button
             color="red"
             variant="light"

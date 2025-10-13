@@ -3,7 +3,7 @@ import BottomNavbar from "@/components/Navbar";
 import { logoutUser, useAuth } from "@/utils/useAuth";
 import { Poppins } from "next/font/google"
 import { Button, Loader } from "@mantine/core"
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 const fontPoppins = Poppins({
     variable: "--font-poppins",
@@ -23,7 +23,7 @@ export default function DriverLayout({ children }) {
         );
     }
 
-    const router = useRouter
+    const router = useRouter();
 
     const handleLogout = () => {
         logoutUser();

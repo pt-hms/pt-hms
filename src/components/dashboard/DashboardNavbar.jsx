@@ -14,7 +14,7 @@ import Sidebar from "./Sidebar";
 import NextImage from "next/image";
 import Link from "next/link";
 import Image from "next/image";
-import { logoutUser } from "@/utils/useAuth";
+import { getUser, logoutUser } from "@/utils/useAuth";
 import { useRouter } from "next/navigation";
 
 export default function DashboardNavbar({
@@ -24,6 +24,8 @@ export default function DashboardNavbar({
   const router = useRouter();
 
   const [mounted, setMounted] = useState(false);
+
+  const user = getUser();
   
   const handleLogout = () => {
     logoutUser();
@@ -87,13 +89,14 @@ export default function DashboardNavbar({
           position="bottom-end"
         >
           <Menu.Target>
-            <Image
-              src="/profil.jpeg"
+            {/* <Image
+              src={user.foto_profil}
               className="!w-8 !h-8 object-cover !rounded-full"
               width={80}
               height={80}
               alt="User profile"
-            />
+            /> */}
+          <div className="w-8 h-8 p-2 border-2 border-[#e10b16] bg-red-50 text-[#e10b16] rounded-full flex justify-center items-center font-sans"><p>{user.nama.slice(0,1)}</p></div>
           </Menu.Target>
 
           <Menu.Dropdown>
@@ -108,10 +111,10 @@ export default function DashboardNavbar({
                 />
                 <div>
                   <Text size="sm" fw={600}>
-                    Sahroni
+                    {user.nama}
                   </Text>
                   <Text size="xs" className="opacity-70">
-                    Admin
+                    {user.role}
                   </Text>
                 </div>
               </div>
@@ -120,13 +123,6 @@ export default function DashboardNavbar({
             <Menu.Divider />
 
             {/* Menu items */}
-            <Menu.Item component={Link} href="/">
-              <Flex align="center" gap={8}>
-                <Icon icon="ic:round-home" width={22} color="grey" />
-                <div>Home</div>
-              </Flex>
-            </Menu.Item>
-
             <Menu.Item>
               <Flex align="center" gap={8}>
                 <Icon icon="mdi:account-circle-outline" width={22} color="grey" />

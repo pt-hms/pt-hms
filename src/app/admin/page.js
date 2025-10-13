@@ -292,7 +292,7 @@ export default function page() {
 
   return (
     <div>
-      <div className="flex flex-wrap gap-6">
+      <div className="flex flex-wrap gap-2 lg:gap-4 w-full justify-center">
         {card.map((menu) => <Card key={menu.nama} nama={menu.nama} data={menu.data} bg={menu.bg} text={menu.text} icon={menu.icon} />)}
       </div>
     </div>

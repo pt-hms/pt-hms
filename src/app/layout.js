@@ -8,6 +8,7 @@ import { MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import Script from "next/script";
 import { ModalsProvider } from "@mantine/modals";
+import GlobalLoader from "@/components/GlobalLoader";
 
 const geistSans = Geist({
    variable: "--font-geist-sans",
@@ -40,6 +41,7 @@ export default function RootLayout({ children }) {
             >
                <Notifications />
                <ModalsProvider>
+                  <GlobalLoader />
                   {children}
                </ModalsProvider>
             </MantineProvider>

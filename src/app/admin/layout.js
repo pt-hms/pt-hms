@@ -1,15 +1,26 @@
 "use client"
-import { AppShell } from '@mantine/core'
+import { AppShell, Loader } from '@mantine/core'
 import React, { useEffect, useState } from 'react'
 import DashboardNavbar from '@/components/dashboard/DashboardNavbar'
 import Sidebar from '@/components/dashboard/Sidebar'
 import { useDisclosure, useHotkeys } from "@mantine/hooks";
 import Head from "next/head";
 import { usePathname } from 'next/navigation'
+import { useAuth } from "@/utils/useAuth";
 
 export default function Dashboard({ children, title }) {
     const [opened, { toggle }] = useDisclosure();
     const pathname = usePathname();
+
+    const { user, loading } = useAuth("admin");
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader color="red" />
+            </div>
+        );
+    }
 
     const pageTitle = {
         "/admin": "Dashboard",

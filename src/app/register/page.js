@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useRef, useEffect } from "react";
 import {
     TextInput,
@@ -8,13 +7,17 @@ import {
     Select,
     Group,
     FileButton,
+    Loader,
 } from "@mantine/core";
 import Image from "next/image";
 import { useForm, matchesField } from "@mantine/form";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { DateInput } from "@mantine/dates";
 import "dayjs/locale/id";
 import { Icon } from "@iconify/react";
+import { notifications } from "@mantine/notifications";
+import { registerUser } from "@/utils/useAuth";
+import useRouteLoading from "@/utils/useRouteLoading";
 
 export default function Page() {
     const [preview, setPreview] = useState(null);
@@ -22,6 +25,8 @@ export default function Page() {
     const [stream, setStream] = useState(null);
     const videoRef = useRef(null);
     const canvasRef = useRef(null);
+    const router = useRouter();
+    const [loading, setLoading] = useState(false);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -39,7 +44,7 @@ export default function Page() {
             setStream(mediaStream);
             setCameraActive(true);
         } catch (err) {
-            console.error("❌ Gagal membuka kamera:", err);
+            console.error("Gagal membuka kamera:", err);
             alert("Tidak dapat mengakses kamera. Pastikan izin sudah diberikan.");
         }
     };
@@ -71,7 +76,7 @@ export default function Page() {
             if (blob) {
                 const file = new File([blob], "selfie.png", { type: "image/png" });
                 setPreview(URL.createObjectURL(blob));
-                form.setFieldValue("profile", file);
+                form.setFieldValue("foto_profil", file);
             }
         }, "image/png");
 
@@ -95,26 +100,26 @@ export default function Page() {
 
     const form = useForm({
         initialValues: {
-            name: "",
-            plate: "",
-            category: "",
-            car: "",
-            kep_number: "",
-            period: null,
-            phone: "",
-            emergency_phone: "",
+            nama: "",
+            no_pol: "",
+            kategori: "",
+            mobil: "",
+            no_kep: "",
+            exp_kep: null,
+            no_hp: "",
+            no_darurat: "",
             password: "",
             confirm_password: "",
-            profile: null,
+            foto_profil: null,
         },
         validate: {
-            name: (value) => (!value.trim() ? "Nama wajib diisi" : null),
-            plate: (value) => (!value.trim() ? "Plat nomor wajib diisi" : null),
-            category: (value) => (!value.trim() ? "Kategori driver wajib diisi" : null),
-            car: (value) => (!value.trim() ? "Nama mobil wajib diisi" : null),
-            kep_number: (value) => (!value.trim() ? "Nomor KEP wajib diisi" : null),
-            period: (value) => (!value ? "Tanggal berlaku kartu wajib diisi" : null),
-            phone: (value) => {
+            nama: (value) => (!value.trim() ? "Nama wajib diisi" : null),
+            no_pol: (value) => (!value.trim() ? "Plat nomor wajib diisi" : null),
+            kategori: (value) => (!value.trim() ? "Kategori driver wajib diisi" : null),
+            mobil: (value) => (!value.trim() ? "Nama mobil wajib diisi" : null),
+            no_kep: (value) => (!value.trim() ? "Nomor KEP wajib diisi" : null),
+            exp_kep: (value) => (!value ? "Tanggal berlaku kartu wajib diisi" : null),
+            no_hp: (value) => {
                 const trimmed = value.trim();
                 if (!trimmed) return "Nomor telepon wajib diisi";
                 if (!/^[0-9]+$/.test(trimmed)) {
@@ -125,7 +130,7 @@ export default function Page() {
                 }
                 return null;
             },
-            emergency_phone: (value) => {
+            no_darurat: (value) => {
                 const trimmed = value.trim();
                 if (!trimmed) return "Nomor telepon wajib diisi";
                 if (!/^[0-9]+$/.test(trimmed)) {
@@ -151,17 +156,58 @@ export default function Page() {
             const reader = new FileReader();
             reader.onload = (e) => {
                 setPreview(e.target.result);
-                form.setFieldValue("profile", file);
+                form.setFieldValue("foto_profil", file);
             };
             reader.readAsDataURL(file);
         }
     };
 
-    const handleSubmit = (values) => {
-        redirect("/driver");
+    const handleSubmit = async (values) => {
+        setLoading(true);
+        console.log(values);
+
+        try {
+            const formData = new FormData();
+            Object.entries(values).forEach(([key, value]) => {
+                if (value instanceof File) {
+                    formData.append(key, value); // untuk file
+                } else if (value !== null && value !== undefined && key != "confirm_password") {
+                    formData.append(key, value); // untuk string/tanggal
+                }
+            });
+
+            await registerUser(formData);
+            setTimeout(() => router.push("/"), 1000);
+        } catch (err) {
+            notifications.show({
+                title: "Registrasi Gagal",
+                message: err.response?.data?.message || "Terjadi kesalahan.",
+                color: "red",
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
+    useRouteLoading(() => {
+        notifications.show({
+            title: "Registrasi Berhasil 🎉",
+            message: "Silakan login dengan akun Anda.",
+            color: "green",
+        });
+        setLoading(false);
+    });
 
+
+
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader color="red" />
+            </div>
+        );
+    }
 
     return (
         <div className="w-full min-h-dvh flex items-center justify-center bg-white text-black">
@@ -173,6 +219,8 @@ export default function Page() {
                         {preview ? (
                             <Image
                                 src={preview}
+                                width={32}
+                                height={32}
                                 alt="Preview"
                                 className="w-32 h-32 rounded-full object-cover border mb-3"
                             />
@@ -182,7 +230,7 @@ export default function Page() {
                             </div>
                         )}
 
-                        {mounted && (
+                        {mounted ? (
                             <Group>
                                 <FileButton onChange={handleFileUpload} accept="image/*">
                                     {(props) => (
@@ -208,7 +256,7 @@ export default function Page() {
                                     Selfie
                                 </Button>
                             </Group>
-                        )}
+                        ) : null}
 
 
                         {cameraActive && (
@@ -242,7 +290,7 @@ export default function Page() {
                         withAsterisk
                         placeholder="Masukkan nama lengkap"
                         mb="md"
-                        {...form.getInputProps("name")}
+                        {...form.getInputProps("nama")}
                         className="md:hidden"
                     />
                     <TextInput
@@ -252,7 +300,7 @@ export default function Page() {
                         withAsterisk
                         placeholder="Masukkan nama lengkap"
                         mb="md"
-                        {...form.getInputProps("name")}
+                        {...form.getInputProps("nama")}
                         className="hidden md:block"
                     />
 
@@ -263,7 +311,7 @@ export default function Page() {
                         withAsterisk
                         placeholder="Masukkan plat nomor"
                         mb="md"
-                        {...form.getInputProps("plate")}
+                        {...form.getInputProps("no_pol")}
                         className="md:hidden"
                     />
                     <TextInput
@@ -273,7 +321,7 @@ export default function Page() {
                         withAsterisk
                         placeholder="Masukkan plat nomor"
                         mb="md"
-                        {...form.getInputProps("plat")}
+                        {...form.getInputProps("no_pol")}
                         className="hidden md:block"
                     />
 
@@ -288,13 +336,13 @@ export default function Page() {
                             { value: "reguler", label: "Reguler" },
                         ]}
                         mb="md"
-                        {...form.getInputProps("category")}
+                        {...form.getInputProps("kategori")}
                         className="md:hidden"
                     />
                     <Select
                         size="lg"
                         radius="md"
-                        label="Kategori Kendaraan"
+                        label="Kategori Driver"
                         withAsterisk
                         placeholder="Pilih kategori"
                         data={[
@@ -302,7 +350,7 @@ export default function Page() {
                             { value: "reguler", label: "Reguler" },
                         ]}
                         mb="md"
-                        {...form.getInputProps("category")}
+                        {...form.getInputProps("kategori")}
                         className="hidden md:block"
                     />
 
@@ -313,7 +361,7 @@ export default function Page() {
                         withAsterisk
                         placeholder="Masukkan nama mobil"
                         mb="md"
-                        {...form.getInputProps("car")}
+                        {...form.getInputProps("mobil")}
                         className="md:hidden"
                     />
                     <TextInput
@@ -323,7 +371,7 @@ export default function Page() {
                         withAsterisk
                         placeholder="Masukkan nama mobil"
                         mb="md"
-                        {...form.getInputProps("car")}
+                        {...form.getInputProps("mobil")}
                         className="hidden md:block"
                     />
 
@@ -334,7 +382,7 @@ export default function Page() {
                         withAsterisk
                         placeholder="Masukkan nomor KEP"
                         mb="md"
-                        {...form.getInputProps("kep_number")}
+                        {...form.getInputProps("no_kep")}
                         className="md:hidden"
                     />
                     <TextInput
@@ -344,7 +392,7 @@ export default function Page() {
                         withAsterisk
                         placeholder="Masukkan nomor KEP"
                         mb="md"
-                        {...form.getInputProps("kep_number")}
+                        {...form.getInputProps("no_kep")}
                         className="hidden md:block"
                     />
 
@@ -357,7 +405,7 @@ export default function Page() {
                         mb="md"
                         locale="id"
                         valueFormat="DD MMMM YYYY"
-                        {...form.getInputProps("period")}
+                        {...form.getInputProps("exp_kep")}
                         className="md:hidden"
                     />
                     <DateInput
@@ -369,7 +417,7 @@ export default function Page() {
                         mb="md"
                         locale="id"
                         valueFormat="DD MMMM YYYY"
-                        {...form.getInputProps("period")}
+                        {...form.getInputProps("exp_kep")}
                         className="hidden md:block"
                     />
 
@@ -380,7 +428,7 @@ export default function Page() {
                         withAsterisk
                         placeholder="Masukkan nomor telepon"
                         mb="md"
-                        {...form.getInputProps("phone")}
+                        {...form.getInputProps("no_hp")}
                         className="md:hidden"
                     />
                     <TextInput
@@ -390,7 +438,7 @@ export default function Page() {
                         withAsterisk
                         placeholder="Masukkan nomor telepon"
                         mb="md"
-                        {...form.getInputProps("phone")}
+                        {...form.getInputProps("no_hp")}
                         className="hidden md:block"
                     />
 
@@ -401,7 +449,7 @@ export default function Page() {
                         withAsterisk
                         placeholder="Masukkan nomor darurat"
                         mb="md"
-                        {...form.getInputProps("emergency_phone")}
+                        {...form.getInputProps("no_darurat")}
                         className="md:hidden"
                     />
                     <TextInput
@@ -411,7 +459,7 @@ export default function Page() {
                         withAsterisk
                         placeholder="Masukkan nomor darurat"
                         mb="md"
-                        {...form.getInputProps("emergency_phone")}
+                        {...form.getInputProps("no_darurat")}
                         className="hidden md:block"
                     />
 

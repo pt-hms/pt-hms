@@ -59,7 +59,7 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
         setPreview(null);
         onClose();
       }}
-      title={data ? "Ubah Data Ritase" : "Tambah Data Ritase"}
+      title={data ? "Ubah Data SIJ" : "Tambah Data SIJ"}
       centered
       size="lg"
       radius="lg"

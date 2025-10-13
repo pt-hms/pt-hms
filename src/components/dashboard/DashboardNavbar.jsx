@@ -14,13 +14,21 @@ import Sidebar from "./Sidebar";
 import NextImage from "next/image";
 import Link from "next/link";
 import Image from "next/image";
+import { logoutUser } from "@/utils/useAuth";
+import { useRouter } from "next/navigation";
 
 export default function DashboardNavbar({
   toggle,
   opened,
 }) {
-  const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
+  const [mounted, setMounted] = useState(false);
+  
+  const handleLogout = () => {
+    logoutUser();
+    router.push("/");
+  };
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -126,7 +134,7 @@ export default function DashboardNavbar({
               </Flex>
             </Menu.Item>
 
-            <Menu.Item>
+            <Menu.Item onClick={handleLogout}>
               <Flex align="center" gap={8}>
                 <Icon icon="mdi:logout" width={22} color="grey" />
                 <div>Logout</div>

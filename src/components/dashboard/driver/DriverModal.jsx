@@ -118,6 +118,7 @@ export default function DriverModal({ opened, onClose, data, plat, onSubmit }) {
               {...form.getInputProps("category")} // pastikan ambil dari field "type"
             />
 
+            <TextInput label="Mobil" {...form.getInputProps("car")} />
             <TextInput label="Nomor KEP" {...form.getInputProps("kep_number")} />
              <DateInput
                 label="Tanggal Berakhir KEP"

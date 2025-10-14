@@ -20,7 +20,7 @@ import RitaseModal from "./SIJModal";
 import { modals } from "@mantine/modals";
 import dayjs from "dayjs";
 import "dayjs/locale/id";
-import { exportToExcel } from "@/components/Export"; // 👈️ Import fungsi ekspor
+import { exportToExcel } from "@/components/Export"; 
 
 export default function TableView({ data }) {
   const [selectedRow, setSelectedRow] = useState(null);
@@ -128,7 +128,7 @@ export default function TableView({ data }) {
   useEffect(() => setMounted(true), []);
   if (!mounted) return null;
 
-  // 👇️ Header untuk Ekspor Excel
+  // Ekspor Excel
   const headers = {
     no: "NO. SIJ",
     name: "NAMA DRIVER",
@@ -166,7 +166,7 @@ export default function TableView({ data }) {
                 "SIJ PT HMS.xlsx",
                 headers
               )
-            } // 👈️ Logic Unduh Ditambahkan
+            } 
           >
             Unduh
           </Button>
@@ -183,7 +183,6 @@ export default function TableView({ data }) {
         </Group>
       </Group>
 
-      {/* 🧾 Tabel */}
       <Box className="w-full bg-white shadow-sm rounded-xl overflow-x-auto border border-gray-100">
         {checkedRows.length > 0 && (
           <Box className="flex items-center justify-between bg-red-50 border-b border-red-200 px-4 py-2">
@@ -203,7 +202,7 @@ export default function TableView({ data }) {
 
         <Table striped highlightOnHover withColumnBorders>
           <Table.Thead className="bg-gray-50">
-            {/* 👇️ Perhatikan tidak ada spasi/newline antar <Table.Th> untuk mencegah hydration error */}
+            
             <Table.Tr>
               <Table.Th>
                 <Checkbox
@@ -241,7 +240,6 @@ export default function TableView({ data }) {
               <Table.Tr
                 key={row.id}
                 className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                {/* 👇️ Perhatikan tidak ada spasi/newline antar <Table.Td> untuk mencegah hydration error */}
                 <Table.Td>
                   <Checkbox
                     checked={checkedRows.includes(row.id)}

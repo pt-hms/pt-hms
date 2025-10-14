@@ -1,3 +1,5 @@
+// TableView.jsx
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -13,9 +15,10 @@ import {
   Modal,
   Image,
   Pagination,
+  ActionIcon,
 } from "@mantine/core";
 import { Icon } from "@iconify/react";
-import RitaseModal from "./DriverModal";
+import DriverModal from "./DriverModal"; // Import modal gabungan
 import { modals } from "@mantine/modals";
 import dayjs from "dayjs";
 import "dayjs/locale/id";
@@ -24,25 +27,29 @@ import { exportToExcel } from "@/components/Export";
 export default function TableView({ data }) {
   const [selectedRow, setSelectedRow] = useState(null);
   const [checkedRows, setCheckedRows] = useState([]);
-  const [opened, setOpened] = useState(false);
+  const [opened, setOpened] = useState(false); // untuk Modal Form (Tambah/Edit)
   const [editData, setEditData] = useState(null);
   const [search, setSearch] = useState("");
   const [ssPreview, setSsPreview] = useState(null);
   const [page, setPage] = useState(1);
   const [filteredData, setFilteredData] = useState(data);
+  const [showPassword, setShowPassword] = useState({});
   const itemsPerPage = 10;
 
-useEffect(() => {
-  setFilteredData(
-    data.filter(
-      (d) =>
-        d.plate.toLowerCase().includes(search.toLowerCase()) ||
-        d.name.toLowerCase().includes(search.toLowerCase())
-    )
-  );
-}, [search, data]);
+  // State untuk Modal Konfirmasi Password Admin
+  const [adminModalOpened, setAdminModalOpened] = useState(false);
+  const [driverIdToShowPassword, setDriverIdToShowPassword] = useState(null); 
 
-
+  useEffect(() => {
+    setFilteredData(
+      data.filter(
+        (d) =>
+          d.plate.toLowerCase().includes(search.toLowerCase()) ||
+          d.name.toLowerCase().includes(search.toLowerCase())
+      )
+    );
+    setPage(1); 
+  }, [search, data]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = filteredData.slice(
@@ -66,7 +73,7 @@ useEffect(() => {
     else console.log("Create data:", form);
   };
 
-   const openDeleteConfirm = (ids) => {
+  const openDeleteConfirm = (ids) => {
     modals.openConfirmModal({
       title: "Konfirmasi Hapus",
       centered: true,
@@ -88,36 +95,54 @@ useEffect(() => {
   const handleDelete = (ids) => {
     if (Array.isArray(ids)) {
       console.log("Menghapus beberapa ID:", ids);
-      // Nanti ganti dengan API delete batch
       setCheckedRows([]);
     } else {
       console.log("Menghapus ID:", ids);
-      // Nanti ganti dengan API delete single
     }
     modals.closeAll();
   };
 
   const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
+  useEffect(() => setMounted(true), []);
   if (!mounted) return null;
 
   const headers = {
-    id:"No",
-  name: "Nama Driver",
-            plate: "Plat Nomor",
-            category: "Kategori Driver",
-            car: "Mobil",
-            kep_number: "Nomor KEP",
-            period: "Masa Berakhir KEP",
-            phone: "No Telepon",
-            emergency_phone: "No Telepon Darurat",
-            password: "Password Driver",
-            profile: "Foto Profil",
-};
+    id: "No",
+    name: "Nama Driver",
+    plate: "Plat Nomor",
+    category: "Kategori Driver",
+    car: "Mobil",
+    kep_number: "Nomor KEP",
+    period: "Masa Berakhir KEP",
+    phone: "No Telepon",
+    emergency_phone: "No Telepon Darurat",
+    password: "Password Driver",
+    profile: "Foto Profil",
+  };
+
+  // FUNGSI: Buka modal konfirmasi admin
+  const handleOpenAdminModal = (id) => {
+    // Jika password sedang terlihat, klik berarti menyembunyikan
+    if (showPassword[id]) {
+        setShowPassword((prev) => ({ ...prev, [id]: false }));
+    } else {
+        // Jika belum terlihat, buka modal konfirmasi
+        setDriverIdToShowPassword(id);
+        setAdminModalOpened(true);
+    }
+  };
+
+  // FUNGSI: Tampilkan password setelah konfirmasi berhasil
+  const handleAdminConfirm = (id) => {
+    setShowPassword((prev) => ({ ...prev, [id]: true }));
+    setDriverIdToShowPassword(null);
+  };
+
+  // Cari data driver yang akan ditampilkan passwordnya (gunakan data asli)
+  const driverToConfirm = driverIdToShowPassword 
+    ? data.find(d => d.id === driverIdToShowPassword)
+    : null;
+
 
   return (
     <div className="w-full relative">
@@ -131,7 +156,13 @@ useEffect(() => {
           className="w-full lg:w-1/3"
         />
         <Group justify="space-between">
-          <Button color="yellow" leftSection={<Icon icon="mdi:download" />} onClick={() => exportToExcel(filteredData, "Driver PT HMS.xlsx", headers)}>
+          <Button
+            color="yellow"
+            leftSection={<Icon icon="mdi:download" />}
+            onClick={() =>
+              exportToExcel(filteredData, "Driver PT HMS.xlsx", headers)
+            }
+          >
             Unduh
           </Button>
           <Button
@@ -150,66 +181,73 @@ useEffect(() => {
       {/* 🔹 Table */}
       <Box className="w-full bg-white shadow-sm rounded-xl overflow-x-auto border border-gray-100">
         {checkedRows.length > 0 && (
-        <Box className="flex items-center justify-between bg-red-50 border-b border-red-200 px-4 py-2">
-          <Text size="sm" className="text-red-700 font-medium">
-            {checkedRows.length} data terpilih
-          </Text>
-          <Button
-            color="red"
-            size="xs"
-            leftSection={<Icon icon="mdi:trash-can" width={16} />}
-            onClick={() => openDeleteConfirm(checkedRows)}
-          >
-            Hapus Data Terpilih
-          </Button>
-        </Box>
-      )}
+          <Box className="flex items-center justify-between bg-red-50 border-b border-red-200 px-4 py-2">
+            <Text size="sm" className="text-red-700 font-medium">
+              {checkedRows.length} data terpilih
+            </Text>
+            <Button
+              color="red"
+              size="xs"
+              leftSection={<Icon icon="mdi:trash-can" width={16} />}
+              onClick={() => openDeleteConfirm(checkedRows)}
+            >
+              Hapus Data Terpilih
+            </Button>
+          </Box>
+        )}
+
         <Table striped highlightOnHover withColumnBorders>
-          <Table.Thead className="bg-gray-50">
-            <Table.Tr>
+          <Table.Thead>
+          <Table.Tr className="bg-gray-50">
               <Table.Th>
                 <Checkbox
-                        checked={
-            paginatedData.length > 0 &&
-            paginatedData.every((row) => checkedRows.includes(row.id))
-            }
-            indeterminate={
-            paginatedData.some((row) => checkedRows.includes(row.id)) &&
-            !paginatedData.every((row) => checkedRows.includes(row.id))
-            }
-            onChange={(e) => {
-            if (e.currentTarget.checked) {
-                // ✅ Tambah semua ID di halaman ini ke daftar checked
-                setCheckedRows((prev) => [
-                ...new Set([...prev, ...paginatedData.map((d) => d.id)]),
-                ]);
-            } else {
-                // ❌ Hapus semua ID di halaman ini
-                setCheckedRows((prev) =>
-                prev.filter((id) => !paginatedData.map((d) => d.id).includes(id))
-                );
-            }
-            }}
+                  checked={
+                    paginatedData.length > 0 &&
+                    paginatedData.every((row) => checkedRows.includes(row.id))
+                  }
+                  indeterminate={
+                    paginatedData.some((row) =>
+                      checkedRows.includes(row.id)
+                    ) &&
+                    !paginatedData.every((row) =>
+                      checkedRows.includes(row.id)
+                    )
+                  }
+                  onChange={(e) => {
+                    if (e.currentTarget.checked) {
+                      setCheckedRows((prev) => [
+                        ...new Set([
+                          ...prev,
+                          ...paginatedData.map((d) => d.id),
+                        ]),
+                      ]);
+                    } else {
+                      setCheckedRows((prev) =>
+                        prev.filter(
+                          (id) =>
+                            !paginatedData.map((d) => d.id).includes(id)
+                        )
+                      );
+                    }
+                  }}
                 />
               </Table.Th>
-                <Table.Th>NAMA</Table.Th>
-                <Table.Th>PLAT</Table.Th>
-                <Table.Th>MOBIL</Table.Th>
-                <Table.Th>JENIS</Table.Th>
-                <Table.Th>NO KEP</Table.Th>
-                <Table.Th>MASA BERLAKU</Table.Th>
-                <Table.Th>NO TELP</Table.Th>
-                <Table.Th>NO DARURAT</Table.Th>
-                <Table.Th>AKSI</Table.Th>
-            </Table.Tr>
+              <Table.Th>NAMA</Table.Th>
+              <Table.Th>PLAT</Table.Th>
+              <Table.Th>MOBIL</Table.Th>
+              <Table.Th>JENIS</Table.Th>
+              <Table.Th>NO KEP</Table.Th>
+              <Table.Th>MASA BERLAKU</Table.Th>
+              <Table.Th>NO TELP</Table.Th>
+              <Table.Th>NO DARURAT</Table.Th>
+              <Table.Th>PASSWORD</Table.Th>
+              <Table.Th>AKSI</Table.Th>
+          </Table.Tr>
           </Table.Thead>
 
           <Table.Tbody>
             {paginatedData.map((row, i) => (
-              <Table.Tr
-                key={row.id}
-                className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}
-              >
+              <Table.Tr key={row.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                 <Table.Td>
                   <Checkbox
                     checked={checkedRows.includes(row.id)}
@@ -220,18 +258,46 @@ useEffect(() => {
                 <Table.Td>{row.plate}</Table.Td>
                 <Table.Td>{row.car}</Table.Td>
                 <Table.Td>
-                  <Badge color={row.category === "PREMIUM" ? "#e10b16" : "gray"} fullWidth size="md">
+                  <Badge
+                    color={row.category === "PREMIUM" ? "red" : "gray"}
+                    fullWidth
+                    size="md"
+                  >
                     {row.category}
                   </Badge>
                 </Table.Td>
                 <Table.Td>{row.kep_number}</Table.Td>
                 <Table.Td>
-              {row.period
-                ? dayjs(row.period).locale("id").format("D MMMM YYYY")
-                : "-"}
-          </Table.Td>
+                  {row.period
+                    ? dayjs(row.period).locale("id").format("D MMMM YYYY")
+                    : "-"}
+                </Table.Td>
                 <Table.Td>{row.phone}</Table.Td>
                 <Table.Td>{row.emergency_phone}</Table.Td>
+
+                {/* 👁️ Password column dengan modal konfirmasi */}
+                <Table.Td>
+                  <Group gap="xs" justify="center">
+                    <Text>
+                      {showPassword[row.id] ? row.password : "••••••"}
+                    </Text>
+                    <ActionIcon
+                      variant="subtle"
+                      color="gray"
+                      onClick={() => handleOpenAdminModal(row.id)} 
+                    >
+                      <Icon
+                        icon={
+                          showPassword[row.id]
+                            ? "mdi:eye-off-outline"
+                            : "mdi:eye-outline"
+                        }
+                        width={18}
+                      />
+                    </ActionIcon>
+                  </Group>
+                </Table.Td>
+
                 <Table.Td className="text-center">
                   <Group justify="center" gap="xs">
                     <Button
@@ -246,7 +312,7 @@ useEffect(() => {
                                 ? row.profile
                                 : URL.createObjectURL(row.profile)
                             )
-                          : alert("Bukti SS belum tersedia")
+                          : alert("Foto Profil belum tersedia")
                       }
                     >
                       <Icon icon="mdi:image-outline" width={18} />
@@ -268,7 +334,6 @@ useEffect(() => {
           </Table.Tbody>
         </Table>
 
-        {/* ✅ Pagination */}
         {totalPages > 1 && (
           <Group justify="center" className="p-4 border-t border-gray-100">
             <Pagination
@@ -282,15 +347,16 @@ useEffect(() => {
           </Group>
         )}
 
-        {/* 🧩 Modal Create/Edit */}
-        <RitaseModal
+        {/* Modal Tambah/Edit Driver */}
+        <DriverModal
           opened={opened}
           onClose={() => setOpened(false)}
           data={editData}
           onSubmit={handleSubmit}
+          type="form" 
         />
 
-        {/* 🖼️ Modal Preview SS */}
+        {/* Modal Preview Foto Driver */}
         <Modal
           opened={!!ssPreview}
           onClose={() => setSsPreview(null)}
@@ -300,12 +366,7 @@ useEffect(() => {
           radius="lg"
         >
           {ssPreview ? (
-            <Image
-              src={ssPreview}
-              alt="Bukti SS"
-              width="100%"
-              radius="md"
-            />
+            <Image src={ssPreview} alt="Foto Driver" width="100%" radius="md" />
           ) : (
             <Text c="dimmed" ta="center">
               Tidak ada gambar untuk ditampilkan.
@@ -313,46 +374,58 @@ useEffect(() => {
           )}
         </Modal>
       </Box>
-      {/* ✅ Detail Panel */}
-        {selectedRow && (
-          <Box className="p-4 border-t border-gray-200 bg-gray-50 flex flex-wrap items-center justify-between sticky bottom-0 w-full">
-            <Text size="sm" className="text-gray-700">
-              Data Driver Terpilih dengan Plat Nomor:{" "}
-              <span className="font-semibold">{selectedRow.plate}</span>
-            </Text>
+      
+      {/* 🔒 Modal Konfirmasi Password Admin */}
+      {driverToConfirm && (
+        <DriverModal
+          opened={adminModalOpened}
+          onClose={() => setAdminModalOpened(false)}
+          onConfirm={handleAdminConfirm} 
+          driverId={driverIdToShowPassword}
+          type="confirm_admin" 
+        />
+      )}
 
-            <Group gap="xs">
-              <Button
-                size="xs"
-                color="blue"
-                leftSection={<Icon icon="mdi:pencil" width={16} />}
-                onClick={() => {
-                  setEditData(selectedRow);
-                  setOpened(true);
-                }}
-              >
-                Edit
-              </Button>
-              <Button
-                size="xs"
-                color="red"
-                leftSection={<Icon icon="mdi:trash-can" width={16} />}
-                onClick={() => openDeleteConfirm(selectedRow.id)}
-              >
-                Hapus
-              </Button>
-              <Button
-                size="xs"
-                color="gray"
-                variant="default"
-                leftSection={<Icon icon="mdi:close" width={16} />}
-                onClick={() => setSelectedRow(null)}
-              >
-                Tutup
-              </Button>
-            </Group>
-          </Box>
-        )}
+      {/* ✅ Detail Panel */}
+      {selectedRow && (
+        <Box className="p-4 border-t border-gray-200 bg-gray-50 flex flex-wrap items-center justify-between sticky bottom-0 w-full">
+          <Text size="sm" className="text-gray-700">
+            Data Driver Terpilih dengan Plat Nomor:{" "}
+            <span className="font-semibold">{selectedRow.plate}</span>
+          </Text>
+
+          <Group gap="xs">
+            <Button
+              size="xs"
+              color="blue"
+              leftSection={<Icon icon="mdi:pencil" width={16} />}
+              onClick={() => {
+                setEditData(selectedRow);
+                setOpened(true);
+              }}
+            >
+              Edit
+            </Button>
+            <Button
+              size="xs"
+              color="red"
+              leftSection={<Icon icon="mdi:trash-can" width={16} />}
+              onClick={() => openDeleteConfirm(selectedRow.id)}
+            >
+              Hapus
+            </Button>
+            <Button
+              size="xs"
+              color="gray"
+              variant="default"
+              leftSection={<Icon icon="mdi:close" width={16} />}
+              onClick={() => setSelectedRow(null)}
+            >
+              Tutup
+            </Button>
+          </Group>
+        </Box>
+      )}
     </div>
   );
 }

@@ -20,6 +20,7 @@ import RitaseModal from "./SIJModal";
 import { modals } from "@mantine/modals";
 import dayjs from "dayjs";
 import "dayjs/locale/id";
+import { exportToExcel } from "@/components/Export"; // 👈️ Import fungsi ekspor
 
 export default function TableView({ data }) {
   const [selectedRow, setSelectedRow] = useState(null);
@@ -31,6 +32,7 @@ export default function TableView({ data }) {
   const [page, setPage] = useState(1);
   const [filteredData, setFilteredData] = useState(data);
   const [timeFilter, setTimeFilter] = useState(null);
+
   const itemsPerPage = 10;
 
   const hours = Array.from({ length: 18 }, (_, i) => {
@@ -39,52 +41,55 @@ export default function TableView({ data }) {
     return { value: label, label };
   });
 
+  // Filter pencarian & waktu
   useEffect(() => {
-  setFilteredData(
-    data.filter((d) => {
-      const matchSearch =
-        d.plate.toLowerCase().includes(search.toLowerCase()) ||
-        d.name.toLowerCase().includes(search.toLowerCase());
+    setFilteredData(
+      data.filter((d) => {
+        const matchSearch =
+          d.plate.toLowerCase().includes(search.toLowerCase()) ||
+          d.name.toLowerCase().includes(search.toLowerCase());
 
-      let matchTime = true;
-      if (timeFilter && d.time) {
-        const rowHour = parseInt(d.time.split(":")[0], 10); // ambil jam dari "HH:mm"
-        const filterHour = parseInt(timeFilter.split(":")[0], 10);
-        matchTime = rowHour === filterHour; // semua jam yang sama dengan jam filter
-      }
+        let matchTime = true;
+        if (timeFilter && d.time) {
+          const rowHour = parseInt(d.time.split(":")[0], 10);
+          const filterHour = parseInt(timeFilter.split(":")[0], 10);
+          matchTime = rowHour === filterHour;
+        }
 
-      return matchSearch && matchTime;
-    })
-  );
-  setPage(1);
-}, [search, data, timeFilter]);
+        return matchSearch && matchTime;
+      })
+    );
+    setPage(1);
+  }, [search, data, timeFilter]);
 
-
-
-
+  // Pagination
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = filteredData.slice(
     (page - 1) * itemsPerPage,
     page * itemsPerPage
   );
 
+  // Checkbox
   const toggleCheck = (id) => {
     setCheckedRows((prev) =>
       prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]
     );
   };
 
+  // Detail panel
   const handleShowDetail = (row) => {
     if (selectedRow && selectedRow.id === row.id) setSelectedRow(null);
     else setSelectedRow(row);
   };
 
+  // Submit form (tambah/edit)
   const handleSubmit = (form) => {
     if (editData) console.log("Update data:", form);
     else console.log("Create data:", form);
   };
 
-   const openDeleteConfirm = (ids) => {
+  // Konfirmasi hapus
+  const openDeleteConfirm = (ids) => {
     modals.openConfirmModal({
       title: "Konfirmasi Hapus",
       centered: true,
@@ -103,14 +108,13 @@ export default function TableView({ data }) {
     });
   };
 
+  // Handle hapus data
   const handleDelete = (ids) => {
     if (Array.isArray(ids)) {
       console.log("Menghapus beberapa ID:", ids);
-      // Nanti ganti dengan API delete batch
       setCheckedRows([]);
     } else {
       console.log("Menghapus ID:", ids);
-      // Nanti ganti dengan API delete single
     }
     modals.closeAll();
   };
@@ -121,16 +125,22 @@ export default function TableView({ data }) {
   }));
 
   const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
+  useEffect(() => setMounted(true), []);
   if (!mounted) return null;
+
+  // 👇️ Header untuk Ekspor Excel
+  const headers = {
+    no: "NO. SIJ",
+    name: "NAMA DRIVER",
+    plate: "PLAT NOMOR",
+    category: "JENIS",
+    time: "JAM MASUK",
+    date: "TANGGAL",
+  };
 
   return (
     <div className="w-full relative">
-      {/* 🔍 Header Atas */}
+      {/* Header */}
       <Group justify="space-between" className="p-4">
         <TextInput
           placeholder="Cari"
@@ -147,7 +157,17 @@ export default function TableView({ data }) {
           className="w-full lg:w-40"
         />
         <Group justify="space-between">
-          <Button color="yellow" leftSection={<Icon icon="mdi:download" />}>
+          <Button
+            color="yellow"
+            leftSection={<Icon icon="mdi:download" />}
+            onClick={() =>
+              exportToExcel(
+                filteredData,
+                "SIJ PT HMS.xlsx",
+                headers
+              )
+            } // 👈️ Logic Unduh Ditambahkan
+          >
             Unduh
           </Button>
           <Button
@@ -163,57 +183,56 @@ export default function TableView({ data }) {
         </Group>
       </Group>
 
-      {/* 🔹 Table */}
+      {/* 🧾 Tabel */}
       <Box className="w-full bg-white shadow-sm rounded-xl overflow-x-auto border border-gray-100">
         {checkedRows.length > 0 && (
-        <Box className="flex items-center justify-between bg-red-50 border-b border-red-200 px-4 py-2">
-          <Text size="sm" className="text-red-700 font-medium">
-            {checkedRows.length} data terpilih
-          </Text>
-          <Button
-            color="red"
-            size="xs"
-            leftSection={<Icon icon="mdi:trash-can" width={16} />}
-            onClick={() => openDeleteConfirm(checkedRows)}
-          >
-            Hapus Data Terpilih
-          </Button>
-        </Box>
-      )}
+          <Box className="flex items-center justify-between bg-red-50 border-b border-red-200 px-4 py-2">
+            <Text size="sm" className="text-red-700 font-medium">
+              {checkedRows.length} data terpilih
+            </Text>
+            <Button
+              color="red"
+              size="xs"
+              leftSection={<Icon icon="mdi:trash-can" width={16} />}
+              onClick={() => openDeleteConfirm(checkedRows)}
+            >
+              Hapus Data Terpilih
+            </Button>
+          </Box>
+        )}
+
         <Table striped highlightOnHover withColumnBorders>
           <Table.Thead className="bg-gray-50">
+            {/* 👇️ Perhatikan tidak ada spasi/newline antar <Table.Th> untuk mencegah hydration error */}
             <Table.Tr>
               <Table.Th>
                 <Checkbox
-                        checked={
-            paginatedData.length > 0 &&
-            paginatedData.every((row) => checkedRows.includes(row.id))
-            }
-            indeterminate={
-            paginatedData.some((row) => checkedRows.includes(row.id)) &&
-            !paginatedData.every((row) => checkedRows.includes(row.id))
-            }
-            onChange={(e) => {
-            if (e.currentTarget.checked) {
-                // ✅ Tambah semua ID di halaman ini ke daftar checked
-                setCheckedRows((prev) => [
-                ...new Set([...prev, ...paginatedData.map((d) => d.id)]),
-                ]);
-            } else {
-                // ❌ Hapus semua ID di halaman ini
-                setCheckedRows((prev) =>
-                prev.filter((id) => !paginatedData.map((d) => d.id).includes(id))
-                );
-            }
-            }}
+                  checked={
+                    paginatedData.length > 0 &&
+                    paginatedData.every((row) => checkedRows.includes(row.id))
+                  }
+                  indeterminate={
+                    paginatedData.some((row) => checkedRows.includes(row.id)) &&
+                    !paginatedData.every((row) => checkedRows.includes(row.id))
+                  }
+                  onChange={(e) => {
+                    if (e.currentTarget.checked) {
+                      setCheckedRows((prev) => [
+                        ...new Set([
+                          ...prev,
+                          ...paginatedData.map((d) => d.id),
+                        ]),
+                      ]);
+                    } else {
+                      setCheckedRows((prev) =>
+                        prev.filter(
+                          (id) => !paginatedData.map((d) => d.id).includes(id)
+                        )
+                      );
+                    }
+                  }}
                 />
-              </Table.Th>
-                <Table.Th>NAMA</Table.Th>
-                <Table.Th>PLAT NOMOR</Table.Th>
-                <Table.Th>JENIS</Table.Th>
-                <Table.Th>JAM</Table.Th>
-                <Table.Th>TANGGAL</Table.Th>
-                <Table.Th>AKSI</Table.Th>
+              </Table.Th><Table.Th>NO. SIJ</Table.Th><Table.Th>NAMA</Table.Th><Table.Th>PLAT NOMOR</Table.Th><Table.Th>JENIS</Table.Th><Table.Th>JAM</Table.Th><Table.Th>TANGGAL</Table.Th><Table.Th>AKSI</Table.Th>
             </Table.Tr>
           </Table.Thead>
 
@@ -221,28 +240,30 @@ export default function TableView({ data }) {
             {paginatedData.map((row, i) => (
               <Table.Tr
                 key={row.id}
-                className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}
-              >
+                className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                {/* 👇️ Perhatikan tidak ada spasi/newline antar <Table.Td> untuk mencegah hydration error */}
                 <Table.Td>
                   <Checkbox
                     checked={checkedRows.includes(row.id)}
                     onChange={() => toggleCheck(row.id)}
                   />
                 </Table.Td>
-                <Table.Td>{row.name}</Table.Td>
-                <Table.Td>{row.plate}</Table.Td>
+
                 <Table.Td>
-                  <Badge color={row.category === "PREMIUM" ? "#e10b16" : "gray"} fullWidth size="md">
+                  {String((page - 1) * itemsPerPage + i + 1).padStart(3, "0")}
+                </Table.Td><Table.Td>{row.name}</Table.Td><Table.Td>{row.plate}</Table.Td><Table.Td>
+                  <Badge
+                    color={row.category === "PREMIUM" ? "#e10b16" : "gray"}
+                    fullWidth
+                    size="md"
+                  >
                     {row.category}
                   </Badge>
-                </Table.Td>
-                <Table.Td>{row.time}</Table.Td>
-                <Table.Td>
-                    {row.date
-                      ? dayjs(row.date).locale("id").format("D MMMM YYYY")
-                      : "-"}
-                </Table.Td>
-                <Table.Td className="text-center">
+                </Table.Td><Table.Td>{row.time}</Table.Td><Table.Td>
+                  {row.date
+                    ? dayjs(row.date).locale("id").format("D MMMM YYYY")
+                    : "-"}
+                </Table.Td><Table.Td className="text-center">
                   <Group justify="center" gap="xs">
                     <Button
                       variant="subtle"
@@ -261,7 +282,6 @@ export default function TableView({ data }) {
                     >
                       <Icon icon="mdi:image-outline" width={18} />
                     </Button>
-
                     <Button
                       variant="subtle"
                       color="blue"
@@ -278,7 +298,7 @@ export default function TableView({ data }) {
           </Table.Tbody>
         </Table>
 
-        {/* ✅ Pagination */}
+        {/* Pagination */}
         {totalPages > 1 && (
           <Group justify="center" className="p-4 border-t border-gray-100">
             <Pagination
@@ -292,7 +312,7 @@ export default function TableView({ data }) {
           </Group>
         )}
 
-        {/* 🧩 Modal Create/Edit */}
+        {/* Modal Create/Edit */}
         <RitaseModal
           opened={opened}
           onClose={() => setOpened(false)}
@@ -301,7 +321,7 @@ export default function TableView({ data }) {
           onSubmit={handleSubmit}
         />
 
-        {/* 🖼️ Modal Preview SS */}
+        {/* Modal Preview SS */}
         <Modal
           opened={!!ssPreview}
           onClose={() => setSsPreview(null)}
@@ -311,12 +331,7 @@ export default function TableView({ data }) {
           radius="lg"
         >
           {ssPreview ? (
-            <Image
-              src={ssPreview}
-              alt="Bukti SS"
-              width="100%"
-              radius="md"
-            />
+            <Image src={ssPreview} alt="Bukti SS" width="100%" radius="md" />
           ) : (
             <Text c="dimmed" ta="center">
               Tidak ada gambar untuk ditampilkan.
@@ -324,46 +339,47 @@ export default function TableView({ data }) {
           )}
         </Modal>
       </Box>
-      {/* ✅ Detail Panel */}
-        {selectedRow && (
-          <Box className="p-4 border-t border-gray-200 bg-gray-50 flex flex-wrap items-center justify-between sticky bottom-0 w-full">
-            <Text size="sm" className="text-gray-700">
-              Data Driver Terpilih dengan Plat Nomor:{" "}
-              <span className="font-semibold">{selectedRow.plate}</span>
-            </Text>
 
-            <Group gap="xs">
-              <Button
-                size="xs"
-                color="blue"
-                leftSection={<Icon icon="mdi:pencil" width={16} />}
-                onClick={() => {
-                  setEditData(selectedRow);
-                  setOpened(true);
-                }}
-              >
-                Edit
-              </Button>
-              <Button
-                size="xs"
-                color="red"
-                leftSection={<Icon icon="mdi:trash-can" width={16} />}
-                onClick={() => openDeleteConfirm(selectedRow.id)}
-              >
-                Hapus
-              </Button>
-              <Button
-                size="xs"
-                color="gray"
-                variant="default"
-                leftSection={<Icon icon="mdi:close" width={16} />}
-                onClick={() => setSelectedRow(null)}
-              >
-                Tutup
-              </Button>
-            </Group>
-          </Box>
-        )}
+      {/* Detail Panel */}
+      {selectedRow && (
+        <Box className="p-4 border-t border-gray-200 bg-gray-50 flex flex-wrap items-center justify-between sticky bottom-0 w-full">
+          <Text size="sm" className="text-gray-700">
+            Data Driver Terpilih dengan Plat Nomor:{" "}
+            <span className="font-semibold">{selectedRow.plate}</span>
+          </Text>
+
+          <Group gap="xs">
+            <Button
+              size="xs"
+              color="blue"
+              leftSection={<Icon icon="mdi:pencil" width={16} />}
+              onClick={() => {
+                setEditData(selectedRow);
+                setOpened(true);
+              }}
+            >
+              Edit
+            </Button>
+            <Button
+              size="xs"
+              color="red"
+              leftSection={<Icon icon="mdi:trash-can" width={16} />}
+              onClick={() => openDeleteConfirm(selectedRow.id)}
+            >
+              Hapus
+            </Button>
+            <Button
+              size="xs"
+              color="gray"
+              variant="default"
+              leftSection={<Icon icon="mdi:close" width={16} />}
+              onClick={() => setSelectedRow(null)}
+            >
+              Tutup
+            </Button>
+          </Group>
+        </Box>
+      )}
     </div>
   );
 }

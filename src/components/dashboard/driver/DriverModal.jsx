@@ -9,69 +9,156 @@ import {
   Box,
   Image,
   PasswordInput,
+  Text,
 } from "@mantine/core";
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import { useForm } from "@mantine/form";
 import { Icon } from "@iconify/react";
 import { DateInput } from "@mantine/dates";
 
-export default function DriverModal({ opened, onClose, data, plat, onSubmit }) {
+// ⚠️ Ganti 'admin' dengan password admin yang sebenarnya
+const ADMIN_SECRET_PASSWORD = "12345678"; // Pastikan ini sudah benar
+
+// -------------------------------------------------------------------------
+// Bagian 1: Komponen Modal Konfirmasi Password Admin (PasswordChecker)
+// -------------------------------------------------------------------------
+
+function PasswordChecker({ opened, onClose, onConfirm, driverId }) {
+  const [error, setError] = useState(null);
+
+  const form = useForm({
+    initialValues: {
+      adminPassword: "",
+    },
+    // Blok validate dikosongkan karena validasi dilakukan di handleSubmit
+  });
+  
+  // Fungsi yang membersihkan state saat modal ditutup atau dibatalkan
+  const handleCloseClean = () => {
+    form.reset();
+    setError(null); // Reset error saat modal ditutup
+    onClose();
+  }
+
+  const handleSubmit = (values) => {
+    // 1. Reset error sebelumnya sebelum mencoba lagi
+    setError(null);
+    
+    if (values.adminPassword === ADMIN_SECRET_PASSWORD) {
+      // JALUR SUKSES: Panggil onConfirm dan tutup modal
+      onConfirm(driverId); 
+      handleCloseClean();
+    } else {
+      // JALUR GAGAL: Set error
+      setError("Password Admin salah! Silakan coba lagi.");
+      // Opsional: Hapus input password agar pengguna mengetik ulang
+      form.setFieldValue('adminPassword', '');
+    }
+  };
+
+  return (
+    <Modal
+      opened={opened}
+      onClose={handleCloseClean} // Gunakan fungsi penutup yang bersih
+      title="Konfirmasi Admin"
+      centered
+      size="sm"
+      radius="lg"
+    >
+      <form onSubmit={form.onSubmit(handleSubmit)}>
+        <PasswordInput
+          label="Masukkan Password Admin"
+          placeholder="Password Admin"
+          // 💡 PERBAIKAN KRUSIAL: Manual menghubungkan value dan onChange
+          value={form.values.adminPassword}
+          onChange={(event) => {
+            // Hapus error saat pengguna mulai mengetik
+            if (error) setError(null);
+            form.setFieldValue('adminPassword', event.currentTarget.value);
+          }}
+          // Sekarang, properti 'error' HANYA mengambil dari state lokal 'error'
+          error={error} 
+          autoFocus
+        />
+
+        <Group justify="flex-end" mt="md">
+          <Button
+            variant="light"
+            color="red"
+            onClick={handleCloseClean} // Gunakan fungsi penutup yang bersih
+          >
+            Batal
+          </Button>
+          <Button type="submit" color="blue">
+            Konfirmasi
+          </Button>
+        </Group>
+      </form>
+    </Modal>
+  );
+}
+
+// -------------------------------------------------------------------------
+// Bagian 2: Komponen Modal Form Tambah/Edit (DriverFormModal)
+// (TIDAK ADA PERUBAHAN)
+// -------------------------------------------------------------------------
+
+function DriverFormModal({ opened, onClose, data, onSubmit }) {
   const [preview, setPreview] = useState(null);
   const form = useForm({
     initialValues: {
-       name: "",
-            plate: "",
-            category: "",
-            car: "",
-            kep_number: "",
-            period: null,
-            phone: "",
-            emergency_phone: "",
-            password: "",
-            profile: null,
-        },
-        validate: {
-            name: (value) => (!value.trim() ? "Nama wajib diisi" : null),
-            plat: (value) => (!value.trim() ? "Plat nomor wajib diisi" : null),
-            category: (value) => (!value.trim() ? "Kategori driver wajib diisi" : null),
-            car: (value) => (!value.trim() ? "Nama mobil wajib diisi" : null),
-            kep_number: (value) => (!value.trim() ? "Nomor KEP wajib diisi" : null),
-            period: (value) => (!value ? "Tanggal berlaku kartu wajib diisi" : null),
-            phone: (value) => {
-                const trimmed = value.trim();
-                if (!trimmed) return "Nomor telepon wajib diisi";
-                if (!/^[0-9]+$/.test(trimmed)) {
-                    return "Nomor telepon hanya boleh berisi angka";
-                }
-                if (trimmed.length < 10 || trimmed.length > 15) {
-                    return "Nomor telepon harus 10–15 digit";
-                }
-                return null;
-            },
-            emergency_phone: (value) => {
-                const trimmed = value.trim();
-                if (!trimmed) return "Nomor telepon wajib diisi";
-                if (!/^[0-9]+$/.test(trimmed)) {
-                    return "Nomor telepon hanya boleh berisi angka";
-                }
-                if (trimmed.length < 10 || trimmed.length > 15) {
-                    return "Nomor telepon harus 10–15 digit";
-                }
-                return null;
-            },
-            password: (value) =>
-                !value.trim()
-                    ? "Password wajib diisi"
-                    : value.trim().length < 6
-                        ? "Password minimal 6 karakter"
-                        : null
+      name: "",
+      plate: "",
+      category: "",
+      car: "",
+      kep_number: "",
+      period: null,
+      phone: "",
+      emergency_phone: "",
+      password: "",
+      profile: null,
+    },
+    validate: {
+      name: (value) => (!value.trim() ? "Nama wajib diisi" : null),
+      plate: (value) => (!value.trim() ? "Plat nomor wajib diisi" : null),
+      category: (value) => (!value.trim() ? "Kategori driver wajib diisi" : null),
+      car: (value) => (!value.trim() ? "Nama mobil wajib diisi" : null),
+      kep_number: (value) => (!value.trim() ? "Nomor KEP wajib diisi" : null),
+      period: (value) => (!value ? "Tanggal berlaku kartu wajib diisi" : null),
+      phone: (value) => {
+        const trimmed = value.trim();
+        if (!trimmed) return "Nomor telepon wajib diisi";
+        if (!/^[0-9]+$/.test(trimmed)) {
+          return "Nomor telepon hanya boleh berisi angka";
+        }
+        if (trimmed.length < 10 || trimmed.length > 15) {
+          return "Nomor telepon harus 10–15 digit";
+        }
+        return null;
+      },
+      emergency_phone: (value) => {
+        const trimmed = value.trim();
+        if (!trimmed) return "Nomor telepon wajib diisi";
+        if (!/^[0-9]+$/.test(trimmed)) {
+          return "Nomor telepon hanya boleh berisi angka";
+        }
+        if (trimmed.length < 10 || trimmed.length > 15) {
+          return "Nomor telepon harus 10–15 digit";
+        }
+        return null;
+      },
+      password: (value) =>
+        (!data && !value.trim()) 
+          ? "Password wajib diisi"
+          : (value.trim().length > 0 && value.trim().length < 6)
+          ? "Password minimal 6 karakter"
+          : null,
     },
   });
 
-  // Prefill form saat edit
   useEffect(() => {
     if (data) {
-      form.setValues(data);
+      form.setValues(data); 
       if (data.profile) setPreview(data.profile);
     } else {
       form.reset();
@@ -85,9 +172,6 @@ export default function DriverModal({ opened, onClose, data, plat, onSubmit }) {
     setPreview(null);
     onClose();
   };
-
-//   console.log(allData);
-  
 
   return (
     <Modal
@@ -104,7 +188,6 @@ export default function DriverModal({ opened, onClose, data, plat, onSubmit }) {
     >
       <Box component="form" onSubmit={form.onSubmit(handleSubmit)}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Bagian Input Data */}
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:col-span-2">
             <TextInput label="Nama Lengkap Driver" {...form.getInputProps("name")} />
             <TextInput label="Plat Nomor" {...form.getInputProps("plate")} />
@@ -115,20 +198,25 @@ export default function DriverModal({ opened, onClose, data, plat, onSubmit }) {
                 { value: "PREMIUM", label: "Premium" },
                 { value: "REGULER", label: "Reguler" },
               ]}
-              {...form.getInputProps("category")} // pastikan ambil dari field "type"
+              {...form.getInputProps("category")}
             />
 
             <TextInput label="Mobil" {...form.getInputProps("car")} />
             <TextInput label="Nomor KEP" {...form.getInputProps("kep_number")} />
-             <DateInput
-                label="Tanggal Berakhir KEP"
-                locale="id"
-                valueFormat="DD MMMM YYYY"
-                {...form.getInputProps("period")}
-              />
+            <DateInput
+              label="Tanggal Berakhir KEP"
+              locale="id"
+              valueFormat="DD MMMM YYYY"
+              {...form.getInputProps("period")}
+            />
             <TextInput label="No Telepon" {...form.getInputProps("phone")} />
             <TextInput label="No Telepon Darurat" {...form.getInputProps("emergency_phone")} />
-            <PasswordInput label="Password" {...form.getInputProps("password")} />
+            
+            <PasswordInput 
+                label="Password" 
+                placeholder={data ? "Kosongkan jika tidak diubah" : "Masukkan password"}
+                {...form.getInputProps("password")} 
+            />
           </div>
 
           {/* Dropzone dengan Preview */}
@@ -139,14 +227,13 @@ export default function DriverModal({ opened, onClose, data, plat, onSubmit }) {
               onDrop={(files) => {
                 const file = files[0];
                 if (file) {
-                  form.setFieldValue("ss", file);
+                  form.setFieldValue("profile", file); 
                   setPreview(URL.createObjectURL(file));
                 }
               }}
               onReject={() => alert("File tidak valid, pilih gambar PNG/JPG")}
               className="w-full h-[240px] border-2 border-dashed border-gray-300 rounded-lg flex justify-center items-center overflow-hidden cursor-pointer hover:bg-gray-50 transition relative"
             >
-              {/* Jika belum ada gambar */}
               {!preview && (
                 <div className="flex flex-col items-center text-center text-gray-600">
                   <Icon
@@ -164,11 +251,10 @@ export default function DriverModal({ opened, onClose, data, plat, onSubmit }) {
                 </div>
               )}
 
-              {/* Jika sudah ada preview */}
               {preview && (
                 <Image
                   src={preview}
-                  alt="Preview SS"
+                  alt="Preview Profil"
                   width="100%"
                   height="100%"
                   fit="cover"
@@ -177,7 +263,6 @@ export default function DriverModal({ opened, onClose, data, plat, onSubmit }) {
               )}
             </Dropzone>
 
-            {/* Tombol ganti file kalau sudah ada preview */}
             {preview && (
               <Button
                 size="xs"
@@ -185,7 +270,7 @@ export default function DriverModal({ opened, onClose, data, plat, onSubmit }) {
                 color="red"
                 onClick={() => {
                   setPreview(null);
-                  form.setFieldValue("ss", null);
+                  form.setFieldValue("profile", null);
                 }}
               >
                 Hapus Gambar
@@ -213,4 +298,15 @@ export default function DriverModal({ opened, onClose, data, plat, onSubmit }) {
       </Box>
     </Modal>
   );
+}
+
+// -------------------------------------------------------------------------
+// Bagian 3: Export Default
+// -------------------------------------------------------------------------
+
+export default function DriverModal(props) {
+    if (props.type === 'confirm_admin') {
+        return <PasswordChecker {...props} />;
+    }
+    return <DriverFormModal {...props} />;
 }

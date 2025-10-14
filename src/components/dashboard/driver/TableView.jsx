@@ -18,7 +18,7 @@ import {
   ActionIcon,
 } from "@mantine/core";
 import { Icon } from "@iconify/react";
-import DriverModal from "./DriverModal"; // Import modal gabungan
+import DriverModal from "./DriverModal";
 import { modals } from "@mantine/modals";
 import dayjs from "dayjs";
 import "dayjs/locale/id";
@@ -275,7 +275,7 @@ export default function TableView({ data }) {
                 <Table.Td>{row.phone}</Table.Td>
                 <Table.Td>{row.emergency_phone}</Table.Td>
 
-                {/* 👁️ Password column dengan modal konfirmasi */}
+                {/* Password column dengan modal konfirmasi */}
                 <Table.Td>
                   <Group gap="xs" justify="center">
                     <Text>
@@ -375,7 +375,7 @@ export default function TableView({ data }) {
         </Modal>
       </Box>
       
-      {/* 🔒 Modal Konfirmasi Password Admin */}
+      {/* Modal Konfirmasi Password Admin */}
       {driverToConfirm && (
         <DriverModal
           opened={adminModalOpened}
@@ -386,7 +386,7 @@ export default function TableView({ data }) {
         />
       )}
 
-      {/* ✅ Detail Panel */}
+      {/* Detail Panel */}
       {selectedRow && (
         <Box className="p-4 border-t border-gray-200 bg-gray-50 flex flex-wrap items-center justify-between sticky bottom-0 w-full">
           <Text size="sm" className="text-gray-700">

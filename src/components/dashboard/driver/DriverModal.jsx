@@ -16,12 +16,9 @@ import { useForm } from "@mantine/form";
 import { Icon } from "@iconify/react";
 import { DateInput } from "@mantine/dates";
 
-// ⚠️ Ganti 'admin' dengan password admin yang sebenarnya
+// password admin
 const ADMIN_SECRET_PASSWORD = "12345678"; // Pastikan ini sudah benar
 
-// -------------------------------------------------------------------------
-// Bagian 1: Komponen Modal Konfirmasi Password Admin (PasswordChecker)
-// -------------------------------------------------------------------------
 
 function PasswordChecker({ opened, onClose, onConfirm, driverId }) {
   const [error, setError] = useState(null);
@@ -69,7 +66,7 @@ function PasswordChecker({ opened, onClose, onConfirm, driverId }) {
         <PasswordInput
           label="Masukkan Password Admin"
           placeholder="Password Admin"
-          // 💡 PERBAIKAN KRUSIAL: Manual menghubungkan value dan onChange
+          // PERBAIKAN KRUSIAL: Manual menghubungkan value dan onChange
           value={form.values.adminPassword}
           onChange={(event) => {
             // Hapus error saat pengguna mulai mengetik
@@ -85,7 +82,7 @@ function PasswordChecker({ opened, onClose, onConfirm, driverId }) {
           <Button
             variant="light"
             color="red"
-            onClick={handleCloseClean} // Gunakan fungsi penutup yang bersih
+            onClick={handleCloseClean}
           >
             Batal
           </Button>
@@ -98,10 +95,7 @@ function PasswordChecker({ opened, onClose, onConfirm, driverId }) {
   );
 }
 
-// -------------------------------------------------------------------------
-// Bagian 2: Komponen Modal Form Tambah/Edit (DriverFormModal)
-// (TIDAK ADA PERUBAHAN)
-// -------------------------------------------------------------------------
+
 
 function DriverFormModal({ opened, onClose, data, onSubmit }) {
   const [preview, setPreview] = useState(null);
@@ -300,9 +294,6 @@ function DriverFormModal({ opened, onClose, data, onSubmit }) {
   );
 }
 
-// -------------------------------------------------------------------------
-// Bagian 3: Export Default
-// -------------------------------------------------------------------------
 
 export default function DriverModal(props) {
     if (props.type === 'confirm_admin') {

@@ -42,7 +42,7 @@ export default function TableView({ data }) {
     setFilteredData(
       data.filter(
         (d) =>
-          d.plate.toLowerCase().includes(search.toLowerCase()) ||
+          d.no_pol.toLowerCase().includes(search.toLowerCase()) ||
           d.name.toLowerCase().includes(search.toLowerCase())
       )
     );
@@ -106,16 +106,16 @@ export default function TableView({ data }) {
 
   const headers = {
     id: "No",
-    name: "Nama Driver",
-    plate: "Plat Nomor",
-    category: "Kategori Driver",
-    car: "Mobil",
-    kep_number: "Nomor KEP",
-    period: "Masa Berakhir KEP",
-    phone: "No Telepon",
-    emergency_phone: "No Telepon Darurat",
+    nama: "Nama Driver",
+    no_pol: "Plat Nomor",
+    kategori: "Kategori Driver",
+    mobil: "Mobil",
+    no_kep: "Nomor KEP",
+    exp_kep: "Masa Berakhir KEP",
+    no_hp: "No Telepon",
+    no_darurat: "No Telepon Darurat",
     password: "Password Driver",
-    profile: "Foto Profil",
+    foto_profil: "Foto Profil",
   };
 
   // FUNGSI: Buka modal konfirmasi admin
@@ -141,6 +141,10 @@ export default function TableView({ data }) {
     ? data.find(d => d.id === driverIdToShowPassword)
     : null;
 
+    function dateFormat(date) {
+        const tanggalLokal = dayjs(date).tz("Asia/Jakarta").format("DD MM YYYY");
+        return tanggalLokal
+      }
 
   return (
     <div className="w-full relative">
@@ -252,26 +256,26 @@ export default function TableView({ data }) {
                     onChange={() => toggleCheck(row.id)}
                   />
                 </Table.Td>
-                <Table.Td>{row.name}</Table.Td>
-                <Table.Td>{row.plate}</Table.Td>
-                <Table.Td>{row.car}</Table.Td>
+                <Table.Td>{row.nama}</Table.Td>
+                <Table.Td>{row.no_pol}</Table.Td>
+                <Table.Td>{row.mobil}</Table.Td>
                 <Table.Td>
                   <Badge
-                    color={row.category === "PREMIUM" ? "red" : "gray"}
+                    color={row.kategori == "PREMIUM" ? "red" : "gray"}
                     fullWidth
                     size="md"
                   >
-                    {row.category}
+                    {row.kategori}
                   </Badge>
                 </Table.Td>
-                <Table.Td>{row.kep_number}</Table.Td>
+                <Table.Td>{row.no_kep}</Table.Td>
                 <Table.Td>
-                  {row.period
-                    ? dayjs(row.period).locale("id").format("D MMMM YYYY")
+                  {row.exp_kep
+                    ? dayjs(row.exp_kep).locale("id").format("D MMMM YYYY")
                     : "-"}
                 </Table.Td>
-                <Table.Td>{row.phone}</Table.Td>
-                <Table.Td>{row.emergency_phone}</Table.Td>
+                <Table.Td>{row.no_hp}</Table.Td>
+                <Table.Td>{row.no_darurat}</Table.Td>
 
                 {/* Password column dengan modal konfirmasi */}
                 <Table.Td>
@@ -304,11 +308,11 @@ export default function TableView({ data }) {
                       radius="xl"
                       size="xs"
                       onClick={() =>
-                        row.profile
+                        row.foto_profil
                           ? setSsPreview(
-                              typeof row.profile === "string"
-                                ? row.profile
-                                : URL.createObjectURL(row.profile)
+                              typeof row.foto_profil === "string"
+                                ? row.foto_profil
+                                : URL.createObjectURL(row.foto_profil)
                             )
                           : alert("Foto Profil belum tersedia")
                       }
@@ -389,7 +393,7 @@ export default function TableView({ data }) {
         <Box className="p-4 border-t border-gray-200 bg-gray-50 flex flex-wrap items-center justify-between sticky bottom-0 w-full">
           <Text size="sm" className="text-gray-700">
             Data Driver Terpilih dengan Plat Nomor:{" "}
-            <span className="font-semibold">{selectedRow.plate}</span>
+            <span className="font-semibold">{selectedRow.no_pol}</span>
           </Text>
 
           <Group gap="xs">

@@ -76,8 +76,12 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
             label="Plat Nomor"
             data={plat} 
             {...form.getInputProps("plate")} />
+            {data &&
+            <>
             <TextInput label="Pickup Point" {...form.getInputProps("pickup")} />
             <TextInput label="Tujuan" {...form.getInputProps("destination")} />
+            </>
+          }
             <TimeInput
                         label="Jam"
                         {...form.getInputProps("time")}

@@ -7,11 +7,11 @@ export default function print() {
         // --- Perubahan Warna Status ---
         // Mendapatkan elemen status
         const statusElement = document.getElementById("status");
-        
+
         if (typeof PrintPlugin === "undefined") {
             console.error("PrintPlugin is not loaded yet.");
             // Teks status diubah menjadi abu-abu
-            statusElement.style.color = "#333333"; 
+            statusElement.style.color = "#333333";
             statusElement.textContent = "Error: Printing library not loaded.";
             return;
         }
@@ -37,7 +37,7 @@ export default function print() {
                     await print.writeLineBreak();
 
                     // Teks status diubah menjadi merah saat sukses
-                    statusElement.style.color = "#e10b16"; 
+                    statusElement.style.color = "#e10b16";
                     statusElement.textContent = "Print successful!";
                 } catch (error) {
                     console.error("Printing failed:", error);
@@ -49,7 +49,7 @@ export default function print() {
             onFailed: (message) => {
                 console.log(message);
                 // Teks status diubah menjadi abu-abu/hitam saat gagal
-                statusElement.style.color = "#333333"; 
+                statusElement.style.color = "#333333";
                 statusElement.textContent = `Failed: ${message}`;
             },
         });
@@ -58,13 +58,13 @@ export default function print() {
     return (
         <Container size="xs" style={{ minHeight: "100vh", display: "flex", alignItems: "center" }}>
             <Paper withBorder shadow="md" p="xl" radius="md" style={{ width: "100%" }}>
-                <Title 
-                    order={2} 
-                    ta="center" 
-                    mb="lg" 
+                <Title
+                    order={2}
+                    ta="center"
+                    mb="lg"
                     style={{ color: "#e10b16" }} // Diubah ke Merah
                 >
-                    Cetak Antrean
+                    Cetak Nomor SIJ
                 </Title>
 
                 <Center>
@@ -72,9 +72,9 @@ export default function print() {
                         <Text size="lg" c="dimmed">
                             Nomor Berikutnya
                         </Text>
-                        <Text 
-                            fz={60} 
-                            fw={700} 
+                        <Text
+                            fz={60}
+                            fw={700}
                             style={{ color: "#e10b16" }} // Diubah ke Merah
                         >
                             001
@@ -82,12 +82,12 @@ export default function print() {
                     </Paper>
                 </Center>
 
-                <Button 
-                    fullWidth 
+                <Button
+                    fullWidth
                     color="#e10b16" // Diubah ke Merah
-                    variant="filled" 
-                    size="lg" 
-                    radius="md" 
+                    variant="filled"
+                    size="lg"
+                    radius="md"
                     onClick={handleConnectAndPrint}
                 >
                     Cetak

@@ -101,25 +101,25 @@ function DriverFormModal({ opened, onClose, data, onSubmit }) {
   const [preview, setPreview] = useState(null);
   const form = useForm({
     initialValues: {
-      name: "",
-      plate: "",
-      category: "",
-      car: "",
-      kep_number: "",
-      period: null,
-      phone: "",
-      emergency_phone: "",
+      nama: "",
+      no_pol: "",
+      kategori: "",
+      mobil: "",
+      no_kep: "",
+      exp_kep: null,
+      no_hp: "",
+      no_darurat: "",
       password: "",
-      profile: null,
+      foto_profil: null,
     },
     validate: {
-      name: (value) => (!value.trim() ? "Nama wajib diisi" : null),
-      plate: (value) => (!value.trim() ? "Plat nomor wajib diisi" : null),
-      category: (value) => (!value.trim() ? "Kategori driver wajib diisi" : null),
-      car: (value) => (!value.trim() ? "Nama mobil wajib diisi" : null),
-      kep_number: (value) => (!value.trim() ? "Nomor KEP wajib diisi" : null),
-      period: (value) => (!value ? "Tanggal berlaku kartu wajib diisi" : null),
-      phone: (value) => {
+      nama: (value) => (!value.trim() ? "Nama wajib diisi" : null),
+      no_pol: (value) => (!value.trim() ? "Plat nomor wajib diisi" : null),
+      kategori: (value) => (!value.trim() ? "Kategori driver wajib diisi" : null),
+      mobil: (value) => (!value.trim() ? "Nama mobil wajib diisi" : null),
+      no_kep: (value) => (!value.trim() ? "Nomor KEP wajib diisi" : null),
+      exp_kep: (value) => (!value ? "Tanggal berlaku kartu wajib diisi" : null),
+      no_hp: (value) => {
         const trimmed = value.trim();
         if (!trimmed) return "Nomor telepon wajib diisi";
         if (!/^[0-9]+$/.test(trimmed)) {
@@ -130,7 +130,7 @@ function DriverFormModal({ opened, onClose, data, onSubmit }) {
         }
         return null;
       },
-      emergency_phone: (value) => {
+      no_darurat: (value) => {
         const trimmed = value.trim();
         if (!trimmed) return "Nomor telepon wajib diisi";
         if (!/^[0-9]+$/.test(trimmed)) {
@@ -153,7 +153,7 @@ function DriverFormModal({ opened, onClose, data, onSubmit }) {
   useEffect(() => {
     if (data) {
       form.setValues(data); 
-      if (data.profile) setPreview(data.profile);
+      if (data.foto_profil) setPreview(data.foto_profil);
     } else {
       form.reset();
       setPreview(null);
@@ -183,8 +183,8 @@ function DriverFormModal({ opened, onClose, data, onSubmit }) {
       <Box component="form" onSubmit={form.onSubmit(handleSubmit)}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:col-span-2">
-            <TextInput label="Nama Lengkap Driver" {...form.getInputProps("name")} />
-            <TextInput label="Plat Nomor" {...form.getInputProps("plate")} />
+            <TextInput label="Nama Lengkap Driver" {...form.getInputProps("nama")} />
+            <TextInput label="Plat Nomor" {...form.getInputProps("no_pol")} />
             <Select
               label="Kategori Driver"
               placeholder="Pilih kategori"
@@ -192,19 +192,19 @@ function DriverFormModal({ opened, onClose, data, onSubmit }) {
                 { value: "PREMIUM", label: "Premium" },
                 { value: "REGULER", label: "Reguler" },
               ]}
-              {...form.getInputProps("category")}
+              {...form.getInputProps("kategori")}
             />
 
-            <TextInput label="Mobil" {...form.getInputProps("car")} />
-            <TextInput label="Nomor KEP" {...form.getInputProps("kep_number")} />
+            <TextInput label="Mobil" {...form.getInputProps("mobil")} />
+            <TextInput label="Nomor KEP" {...form.getInputProps("no_kep")} />
             <DateInput
               label="Tanggal Berakhir KEP"
               locale="id"
               valueFormat="DD MMMM YYYY"
-              {...form.getInputProps("period")}
+              {...form.getInputProps("exp_kep")}
             />
-            <TextInput label="No Telepon" {...form.getInputProps("phone")} />
-            <TextInput label="No Telepon Darurat" {...form.getInputProps("emergency_phone")} />
+            <TextInput label="No Telepon" {...form.getInputProps("no_hp")} />
+            <TextInput label="No Telepon Darurat" {...form.getInputProps("no_darurat")} />
             
             <PasswordInput 
                 label="Password" 
@@ -221,7 +221,7 @@ function DriverFormModal({ opened, onClose, data, onSubmit }) {
               onDrop={(files) => {
                 const file = files[0];
                 if (file) {
-                  form.setFieldValue("profile", file); 
+                  form.setFieldValue("foto_profil", file); 
                   setPreview(URL.createObjectURL(file));
                 }
               }}
@@ -264,7 +264,7 @@ function DriverFormModal({ opened, onClose, data, onSubmit }) {
                 color="red"
                 onClick={() => {
                   setPreview(null);
-                  form.setFieldValue("profile", null);
+                  form.setFieldValue("foto_profil", null);
                 }}
               >
                 Hapus Gambar

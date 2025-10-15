@@ -1,6 +1,35 @@
-import React from 'react'
+"use client"
+import React, { useEffect, useState } from 'react'
 import TableView from '@/components/dashboard/sij/TableView'
+import { getSIJ } from '@/utils/api/sij';
+import GlobalLoader from '@/components/GlobalLoader';
 export default function page() {
+
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(false);
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const data = await getSIJ();
+                setData(data.sij);
+            } catch (err) {
+                console.error("Gagal ambil data driver:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    if (loading) {
+        return (
+            <GlobalLoader />
+        );
+    }
+
+    console.log(data);
     const dummyData =
         [
             {
@@ -11,6 +40,7 @@ export default function page() {
                 time: "10:00",
                 date: "2025-09-30",
                 ss: "/profil.jpeg",
+                no_sij: "SIJ-001",
             },
             {
                 id: 2,
@@ -20,6 +50,7 @@ export default function page() {
                 time: "11:00",
                 date: "2025-09-30",
                 ss: "/profil.jpeg",
+                no_sij: "SIJ-002",
             },
             {
                 id: 3,
@@ -29,6 +60,7 @@ export default function page() {
                 time: "12:00",
                 date: "2025-09-30",
                 ss: "/profil.jpeg",
+                no_sij: "SIJ-003",
             },
             {
                 id: 4,
@@ -38,6 +70,7 @@ export default function page() {
                 time: "13:00",
                 date: "2025-09-30",
                 ss: "/profil.jpeg",
+                no_sij: "SIJ-004",
             },
             {
                 id: 5,
@@ -47,6 +80,7 @@ export default function page() {
                 time: "14:00",
                 date: "2025-09-30",
                 ss: "/profil.jpeg",
+                no_sij: "SIJ-005",
             },
             {
                 id: 6,
@@ -56,6 +90,7 @@ export default function page() {
                 time: "15:00",
                 date: "2025-09-30",
                 ss: "/profil.jpeg",
+                no_sij: "SIJ-006",
             },
             {
                 id: 7,
@@ -65,6 +100,7 @@ export default function page() {
                 time: "16:00",
                 date: "2025-09-30",
                 ss: "/profil.jpeg",
+                no_sij: "SIJ-007",
             },
             {
                 id: 8,
@@ -74,6 +110,7 @@ export default function page() {
                 time: "17:00",
                 date: "2025-09-30",
                 ss: "/profil.jpeg",
+                no_sij: "SIJ-008",
             },
             {
                 id: 9,
@@ -83,6 +120,7 @@ export default function page() {
                 time: "18:00",
                 date: "2025-09-30",
                 ss: "/profil.jpeg",
+                no_sij: "SIJ-009",
             },
             {
                 id: 10,
@@ -92,9 +130,11 @@ export default function page() {
                 time: "19:00",
                 date: "2025-09-30",
                 ss: "/profil.jpeg",
+                no_sij: "SIJ-010",
             },
+
         ];
     return (
-        <div className='bg-white rounded-xl shadow p-6'><TableView data={dummyData} /></div>
+        <div className='bg-white rounded-xl shadow p-6'><TableView data={data} /></div>
     )
 }

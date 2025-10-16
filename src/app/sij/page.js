@@ -7,12 +7,14 @@ import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { uploadTF } from "@/utils/api/transfer";
 import { useAuth } from "@/utils/useAuth";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
     const [preview, setPreview] = useState(null);
     const [file, setFile] = useState(null);
     const [isUploading, setIsUploading] = useState(false);
     const { user, loading } = useAuth("driver");
+    const router = useRouter();
 
     const handleDrop = (files) => {
         const selectedFile = files[0];
@@ -44,6 +46,7 @@ export default function Page() {
 
             // Panggil API upload
             await uploadTF(formData);
+            router.push("/driver");
 
             notifications.show({
                 title: "Berhasil",

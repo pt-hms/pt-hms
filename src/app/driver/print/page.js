@@ -48,7 +48,9 @@ export default function print() {
         fetchData();
     }, []);
 
-    console.log(data, profile, buktiTF);
+    const lastSij = data?.no_sij || "000"; // fallback
+    const nextNumber = Number(lastSij) + 1;
+    const nextSij = String(nextNumber).padStart(3, "0");
 
 
     const handleConnectAndPrint = async () => {
@@ -77,7 +79,7 @@ export default function print() {
                     await print.writeText(`No Pol: ${profile?.no_pol}`, { align: "center" });
                     await print.writeDashLine();
                     await print.writeText(`${formatted}`, { align: "center" });
-                    await print.writeText(`${data.no_sij}`, { align: "center", bold: true, size: "double" });
+                    await print.writeText(`${nextSij}`, { align: "center", bold: true, size: "double" });
                     await print.writeDashLine();
                     await print.writeText("DISIPLIN & PATUHI SOP", { align: "center" });
                     await print.writeLineBreak();
@@ -89,12 +91,10 @@ export default function print() {
                     // POST ke /sij-print dengan tf.id
                     await axiosInstance.post("/sij-print", {
                         tf_id: buktiTF?.id,
+                        no_sij: nextSij,
                     }, {
-                        headers: {
-                            "Content-Type": "application/json",
-                        }
-                    },);
-
+                        headers: { "Content-Type": "application/json" }
+                    });
 
                     statusElement.style.color = "#e10b16";
                     statusElement.textContent = "Print successful!";
@@ -147,7 +147,7 @@ export default function print() {
                             fw={700}
                             style={{ color: "#e10b16" }} // Diubah ke Merah
                         >
-                            {data.no_sij}
+                            {nextSij}
                         </Text>
                     </Paper>
                 </Center>

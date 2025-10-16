@@ -6,6 +6,11 @@ export async function getSIJ() {
     return res.data;
 }
 
+export async function getLastSIJ() {
+    const res = await axiosInstance.get("/sij-last");
+    return res.data;
+}
+
 // Ambil SIJ berdasarkan ID
 export async function getSIJById(id) {
     const res = await axiosInstance.get(`/sij/${id}`);

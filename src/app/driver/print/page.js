@@ -1,8 +1,38 @@
 "use client";
 
-import { TextInput, Button, Paper, Container, Title, Text, Center, Group } from "@mantine/core";
+import { getLastSIJ } from "@/utils/api/sij";
+import { TextInput, Button, Paper, Container, Title, Text, Center, Loader } from "@mantine/core";
+import { useEffect, useState } from "react";
 
 export default function print() {
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(false)
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const data = await getLastSIJ();
+                setData(data);
+            } catch (err) {
+                console.error("Gagal ambil data driver:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/70 backdrop-blur-sm transition-all duration-300">
+                <Loader size="lg" color="red" />
+            </div>
+        );
+    }
+
+    console.log(data);
+
     const handleConnectAndPrint = () => {
         // --- Perubahan Warna Status ---
         // Mendapatkan elemen status
@@ -29,7 +59,7 @@ export default function print() {
                     await print.writeText("Bandara Soekarno-Hatta", { align: "center" });
                     await print.writeDashLine();
                     await print.writeText("Jumat 10/10/25 22:40:24", { align: "center" });
-                    await print.writeText("001", { align: "center", bold: true, size: "double" });
+                    await print.writeText(`${data.no_sij}`, { align: "center", bold: true, size: "double" });
                     await print.writeDashLine();
                     await print.writeText("Berikut nomor antrean anda", { align: "center" });
                     await print.writeLineBreak();
@@ -77,7 +107,7 @@ export default function print() {
                             fw={700}
                             style={{ color: "#e10b16" }} // Diubah ke Merah
                         >
-                            001
+                            {data.no_sij}
                         </Text>
                     </Paper>
                 </Center>

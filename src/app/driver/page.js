@@ -4,6 +4,7 @@ import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import { notifications } from "@mantine/notifications";
 import { Loader } from "@mantine/core";
 import Image from "next/image";
+import { uploadRitase } from "@/utils/api/ritase";
 
 export default function Page() {
   const [preview, setPreview] = useState(null);
@@ -20,8 +21,8 @@ export default function Page() {
     }
   };
 
-  const handleUpload = () => {
-    if (file == null) {
+  const handleUpload = async () => {
+    if (!file) {
       notifications.show({
         title: "Gagal",
         message: "Silakan pilih file terlebih dahulu!",
@@ -30,26 +31,43 @@ export default function Page() {
       return;
     }
 
-    // Simulasi proses upload
     setIsUploading(true);
-    setTimeout(() => {
-        notifications.show({
-            title: "Berhasil",
-            message: `File "${file.name}" berhasil diunggah (simulasi)!`,
-            color: "green",
-        });
 
-        setFile(null);
-        setPreview(null);
-        setIsUploading(false);
-    }, 1500); // Simulasi waktu upload 1.5 detik
+    try {
+      // Buat FormData
+      const formData = new FormData();
+      formData.append("ss_order", file);
+      console.log(formData.get("ss_order"));
+
+      // Panggil API upload
+      await uploadRitase(formData);
+
+
+      notifications.show({
+        title: "Berhasil",
+        message: `File "${file.name}" berhasil diunggah!`,
+        color: "green",
+      });
+
+      // Reset state
+      setFile(null);
+      setPreview(null);
+    } catch (error) {
+      console.error(error);
+      notifications.show({
+        title: "Gagal",
+        message: "Terjadi kesalahan saat mengunggah file.",
+        color: "red",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
-  
   return (
     // Latar belakang layar diubah menjadi abu-abu muda lembut
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 pb-[124px]"> 
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 pb-[124px]">
       <h1 className="text-xl font-bold text-[#333333] mb-4">Unggah SS Ritase</h1>
-      
+
       {/* === AREA UPLOAD (Dropzone) === */}
       <Dropzone
         accept={IMAGE_MIME_TYPE}
@@ -71,7 +89,8 @@ export default function Page() {
             src={preview}
             alt="Preview"
             className="w-full h-full object-cover rounded-2xl"
-            style={{ objectFit: 'contain' }} // Menggunakan contain agar gambar terlihat utuh
+            style={{ objectFit: 'contain' }}
+            fill={true} // Menggunakan contain agar gambar terlihat utuh
           />
         ) : (
           <p className="text-gray-500 font-bold text-center text-xl p-4">
@@ -79,7 +98,7 @@ export default function Page() {
           </p>
         )}
       </Dropzone>
-      
+
       {/* === TOMBOL AKSI === */}
       {file &&
         <div className="w-4/5 mx-auto h-fit py-5 flex justify-between max-w-sm">

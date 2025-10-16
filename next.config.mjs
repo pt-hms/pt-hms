@@ -3,7 +3,7 @@ import withPWA from "next-pwa";
 
 const nextConfig = {
    images: {
-      domains: ["res.cloudinary.com"],
+      domains: ["res.cloudinary.com", "cdn-icons-png.freepik.com"],
    },
 };
 

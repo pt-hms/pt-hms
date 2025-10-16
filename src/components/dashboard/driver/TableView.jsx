@@ -43,7 +43,7 @@ export default function TableView({ data }) {
       data.filter(
         (d) =>
           d.no_pol.toLowerCase().includes(search.toLowerCase()) ||
-          d.name.toLowerCase().includes(search.toLowerCase())
+          d.nama.toLowerCase().includes(search.toLowerCase())
       )
     );
     setPage(1); 

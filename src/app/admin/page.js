@@ -74,6 +74,8 @@ export default function Page() {
     }
   };
 
+  // if (loading) return <GlobalLoader />;
+
   const card = [
     {
       nama: "DAD",

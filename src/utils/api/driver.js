@@ -18,3 +18,11 @@ export async function updateDriver(id, formData) {
   });
   return res.data;
 }
+
+export async function deleteDriver(ids) {
+  const res = await axiosInstance.delete("/drivers", {
+    data: ids,
+    headers: { "Content-Type": "application/json" },
+  });
+  return res.data;
+}

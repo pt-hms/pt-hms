@@ -153,43 +153,53 @@ function DriverFormModal({ opened, onClose, data, onSubmit }) {
   });
 
   useEffect(() => {
-    if (data) {
-      form.setValues(data); 
-      if (data.foto_profil) setPreview(data.foto_profil);
-    } else {
-      form.reset();
-      setPreview(null);
-    }
-  }, [data]);
+  if (opened && data) {
+    form.setValues(data);
+    if (data.foto_profil) setPreview(data.foto_profil);
+  } else if (opened && !data) {
+    form.reset();
+    setPreview(null);
+  }
+}, [data, opened]);
+
   
   
 
-   const handleSubmit = async (values) => {
-          console.log(values);
-  
-          try {
-              const formData = new FormData();
-              Object.entries(values).forEach(([key, value]) => {
-                  if (value instanceof File) {
-                      formData.append(key, value); // untuk file
-                  } else if (value !== null && value !== undefined ) {
-                      formData.append(key, value); // untuk string/tanggal
-                  }
-              });
+ // di DriverFormModal
+const handleSubmit = async (values) => {
+  try {
+    const formData = new FormData();
+    Object.entries(values).forEach(([key, value]) => {
+      if (value instanceof File) formData.append(key, value);
+      else if (value !== null && value !== undefined)
+        formData.append(key, value);
+    });
 
-              {data ? await updateDriver(formData, data.id) : await createDriver(formData)}
-          } catch (err) {
-              notifications.show({
-                  title: "Registrasi Gagal",
-                  message: err.response?.data?.message || "Terjadi kesalahan.",
-                  color: "red",
-              });
-          } finally {
+    if (data) await updateDriver(data.id, formData);
+    else await createDriver(formData);
+
+    // ✅ panggil callback untuk refresh
+    if (onSubmit) await onSubmit();
+
+    notifications.show({
+      title: data ? "Data Diperbarui" : "Driver Ditambahkan",
+      message: "Data driver berhasil disimpan.",
+      color: "green",
+    });
+
+  } catch (err) {
+    notifications.show({
+      title: "Gagal Menyimpan Data",
+      message: err.response?.data?.message || "Terjadi kesalahan.",
+      color: "red",
+    });
+  } finally {
     form.reset();
     setPreview(null);
     onClose();
-          }
-      };
+  }
+};
+
 
   return (
     <Modal

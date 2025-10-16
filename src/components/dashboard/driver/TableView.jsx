@@ -21,7 +21,7 @@ import { modals } from "@mantine/modals";
 import dayjs from "dayjs";
 import "dayjs/locale/id";
 import { exportToExcel } from "@/components/Export";
-import { getDriver } from "@/utils/api/driver";
+import { deleteDriver, getDriver } from "@/utils/api/driver";
 import GlobalLoader from "@/components/GlobalLoader";
 
 export default function TableView() {
@@ -93,31 +93,50 @@ export default function TableView() {
     setDriverIdToShowPassword(null);
   };
 
-  const openDeleteConfirm = (ids) => {
-    modals.openConfirmModal({
-      title: "Konfirmasi Hapus",
-      centered: true,
-      children: (
-        <Text size="sm">
-          Apakah kamu yakin ingin menghapus{" "}
-          <strong>
-            {Array.isArray(ids) ? `${ids.length} data terpilih` : "data ini"}
-          </strong>
-          ?
-        </Text>
-      ),
-      labels: { confirm: "Ya", cancel: "Tidak" },
-      confirmProps: { color: "red" },
-      onConfirm: () => handleDelete(ids),
-    });
-  };
+  // ✅ Fungsi buka modal konfirmasi hapus
+const openDeleteConfirm = (ids) => {
+  modals.openConfirmModal({
+    title: "Konfirmasi Hapus Data",
+    centered: true,
+    children: (
+      <Text size="sm">
+        Apakah kamu yakin ingin menghapus{" "}
+        <strong>
+          {Array.isArray(ids) ? `${ids.length} data terpilih` : "data ini"}
+        </strong>
+        ?
+      </Text>
+    ),
+    labels: { confirm: "Ya, Hapus", cancel: "Batal" },
+    confirmProps: { color: "red" },
+    cancelProps: { variant: "subtle" },
+    onConfirm: () => handleDelete(ids),
+  });
+};
 
-  const handleDelete = async (ids) => {
-    console.log("Hapus ID:", ids);
+// ✅ Fungsi delete (tanpa alert)
+const handleDelete = async (ids) => {
+  try {
+    const idArray = Array.isArray(ids) ? ids : [ids];
+    console.log("Menghapus ID:", idArray);
+
+    // Kirim array ID ke API
+    await deleteDriver(idArray);
+
+    // Update tampilan tanpa fetch ulang
+    setData((prev) =>
+      prev.filter((item) => !idArray.includes(String(item.id)))
+    );
+
+    // Tutup modal dan reset
     setCheckedRows([]);
     modals.closeAll();
-    await fetchData();
-  };
+  } catch (err) {
+    console.error("Gagal menghapus data:", err);
+  }
+};
+
+
 
   const handleModalSubmit = async () => {
     await fetchData();
@@ -342,7 +361,7 @@ export default function TableView() {
         opened={opened}
         onClose={() => setOpened(false)}
         data={editData}
-        onSubmit={handleModalSubmit}
+        onSubmit={fetchData} // ✅ langsung panggil fetchData
         type="form"
       />
 

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import { notifications } from "@mantine/notifications";
-import { Loader } from "@mantine/core";
+import { Button, Loader } from "@mantine/core";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { uploadTF } from "@/utils/api/transfer";
@@ -69,14 +69,22 @@ export default function Page() {
         }
     };
 
+
+    const handleLogout = () => {
+        logoutUser();
+        router.push("/");
+    };
+
     return (
         // Wrapper utama diubah:
         // 1. Dibuat flex container (flex)
         // 2. Konten diletakkan di tengah horizontal (items-center)
         // 3. Konten diletakkan di tengah vertikal (justify-center)
         // 4. pb-[124px] dihilangkan, diganti dengan padding vertikal (py-8)
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 py-8">
-
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 py-8 relative">
+            <div className="fixed right-2 top-2 z-2">
+                <Button size="sm" color="#e10b16" onClick={handleLogout}>Keluar</Button>
+            </div>
 
             {/* === AREA UPLOAD (Dropzone) === */}
             <Dropzone

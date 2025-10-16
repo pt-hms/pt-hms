@@ -13,6 +13,12 @@ const fontPoppins = Poppins({
 
 
 export default function DriverLayout({ children }) {
+    const router = useRouter();
+
+    const handleLogout = () => {
+        logoutUser();
+        router.push("/");
+    };
     const { user, loading } = useAuth("driver");
 
     if (loading) {
@@ -23,12 +29,7 @@ export default function DriverLayout({ children }) {
         );
     }
 
-    const router = useRouter();
 
-    const handleLogout = () => {
-        logoutUser();
-        router.push("/");
-    };
 
     return (
         <div className={`bg-[#ECECED] min-h-screen ${fontPoppins.variable} relative w-full`}>

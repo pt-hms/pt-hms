@@ -56,7 +56,7 @@ export default function Page() {
       console.error(error);
       notifications.show({
         title: "Gagal",
-        message: "Terjadi kesalahan saat mengunggah file.",
+        message: error.response?.data?.message || "Terjadi Kesalahan Saat Mengunggah Gambar",
         color: "red",
       });
     } finally {

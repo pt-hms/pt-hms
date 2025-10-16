@@ -95,7 +95,7 @@ export default function SIJModal({ opened, onClose, data, plat, onSubmit }) {
       <Box component="form" onSubmit={form.onSubmit(handleSubmit)}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Input Data */}
-          <div className="grid grid-cols-1 gap-3 lg:col-span-2">
+          <div className="grid grid-cols-1 gap-3 lg:col-span-3">
             <Select
               label="Plat Nomor"
               data={plat}
@@ -111,7 +111,7 @@ export default function SIJModal({ opened, onClose, data, plat, onSubmit }) {
           </div>
 
           {/* Dropzone */}
-          <div className="flex flex-col items-center justify-center gap-3">
+          {/* <div className="flex flex-col items-center justify-center gap-3">
             <Dropzone
               accept={IMAGE_MIME_TYPE}
               multiple={false}
@@ -166,7 +166,7 @@ export default function SIJModal({ opened, onClose, data, plat, onSubmit }) {
                 Hapus Gambar
               </Button>
             )}
-          </div>
+          </div> */}
         </div>
 
         <Group position="center" mt="lg">

@@ -131,6 +131,7 @@ const handleDelete = async (ids) => {
     // Tutup modal dan reset
     setCheckedRows([]);
     modals.closeAll();
+    await fetchData();
   } catch (err) {
     console.error("Gagal menghapus data:", err);
   }

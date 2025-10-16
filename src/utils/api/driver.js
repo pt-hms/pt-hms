@@ -19,9 +19,9 @@ export async function updateDriver(id, formData) {
   return res.data;
 }
 
-export async function deleteDriver(ids) {
+export async function deleteDriver(id) {
   const res = await axiosInstance.delete("/drivers", {
-    data: ids,
+    data: { "id": id },
     headers: { "Content-Type": "application/json" },
   });
   return res.data;

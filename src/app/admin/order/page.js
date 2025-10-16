@@ -1,143 +1,47 @@
-import TableView from "@/components/dashboard/ritase/TableView"
-export default function page() {
-  const dummyData = [
-    {
-      id: 1,
-      name: "Budi Santoso",
-      plate: "B 1234 CD",
-      category: "PREMIUM",
-      pickup: "Bogor",
-      destination: "Jakarta",
-      ss: "/profil.jpeg",
-      date: "2025-10-11",
-      time: "08:30",
-    },
-    {
-      id: 2,
-      name: "Siti Aisyah",
-      plate: "F 5678 GH",
-      category: "REGULER",
-      pickup: "Cibinong",
-      destination: "Depok",
-      ss: "/profil.jpeg",
-      date: "2025-10-10",
-      time: "09:15",
-    },
-    {
-      id: 3,
-      name: "Ahmad Fauzi",
-      plate: "B 9876 KL",
-      category: "PREMIUM",
-      pickup: "Ciawi",
-      destination: "Jakarta Selatan",
-      ss: "/profil.jpeg",
-      date: "2025-10-09",
-      time: "14:45",
-    },
-    {
-      id: 4,
-      name: "Rina Marlina",
-      plate: "F 2222 ZZ",
-      category: "REGULER",
-      pickup: "Dramaga",
-      destination: "Bogor",
-      ss: "/profil.jpeg",
-      date: "2025-10-08",
-      time: "07:30",
-    },
-    {
-      id: 5,
-      name: "Andi Pratama",
-      plate: "B 4567 OP",
-      category: "PREMIUM",
-      pickup: "Sentul",
-      destination: "Bekasi",
-      ss: "/profil.jpeg",
-      date: "2025-10-07",
-      time: "12:00",
-    },
-    {
-      id: 6,
-      name: "Dewi Kusuma",
-      plate: "F 8899 RT",
-      category: "REGULER",
-      pickup: "Cisarua",
-      destination: "Jakarta Timur",
-      ss: "/profil.jpeg",
-      date: "2025-10-06",
-      time: "10:45",
-    },
-    {
-      id: 7,
-      name: "Eko Wijaya",
-      plate: "B 1122 MN",
-      category: "PREMIUM",
-      pickup: "Bogor Tengah",
-      destination: "Cibubur",
-      ss: "/profil.jpeg",
-      date: "2025-10-05",
-      time: "16:00",
-    },
-    {
-      id: 8,
-      name: "Fitriani",
-      plate: "F 3344 PQ",
-      category: "REGULER",
-      pickup: "Ciluar",
-      destination: "Depok",
-      ss: "/profil.jpeg",
-      date: "2025-10-04",
-      time: "19:30",
-    },
-    {
-      id: 9,
-      name: "Joko Saputra",
-      plate: "B 7788 WX",
-      category: "PREMIUM",
-      pickup: "Bogor Barat",
-      destination: "Tangerang",
-      ss: "/profil.jpeg",
-      date: "2025-10-03",
-      time: "07:45",
-    },
-    {
-      id: 10,
-      name: "Lestari Wulandari",
-      plate: "F 9900 UV",
-      category: "REGULER",
-      pickup: "Cibinong",
-      destination: "Jakarta Pusat",
-      ss: "/profil.jpeg",
-      date: "2025-10-02",
-      time: "11:00",
-    },
-    {
-      id: 11,
-      name: "Agus Hidayat",
-      plate: "B 2233 QR",
-      category: "PREMIUM",
-      pickup: "Dramaga",
-      destination: "Jakarta Barat",
-      ss: "/profil.jpeg",
-      date: "2025-10-01",
-      time: "15:30",
-    },
-    {
-      id: 12,
-      name: "Nia Rahma",
-      plate: "F 4455 TU",
-      category: "REGULER",
-      pickup: "Cibinong",
-      destination: "Bogor Selatan",
-      ss: "/profil.jpeg",
-      date: "2025-09-30",
-      time: "21:00",
-    },
-  ];
+"use client"
+
+import React, { useEffect, useState } from "react";
+// PATH DIPERBAIKI: Kembali ke path relatif tanpa ekstensi
+import { getAllRitase } from "../../../utils/api/ritase";
+// PATH DIPERBAIKI: Kembali ke path relatif tanpa ekstensi
+import TableView from "../../../components/dashboard/ritase/TableView";
+
+
+
+export default function RitasePage() {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const fetchedRitaseData = await getAllRitase();
+        setData(fetchedRitaseData); // ✅ sekarang array, aman untuk filter/map
+      } catch (err) {
+        console.error("Gagal mengambil data ritase:", err);
+      }
+    }
+    fetchData();
+  }, []);
+
+
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="bg-red-50 border border-red-200 p-6 rounded-xl shadow-lg text-center">
+          <h2 className="text-xl font-semibold text-red-700">❌ Error Fetching Data</h2>
+          <p className="text-gray-700 mt-2">{error}</p>
+          <p className="text-sm text-gray-500 mt-1">Cek console browser untuk detail error.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white rounded-xl shadow p-6">
-      <TableView data={dummyData} />
+    <div className="bg-white rounded-xl shadow w-full p-6">
+      <TableView data={data} />
     </div>
-  )
-} 
+  );
+}

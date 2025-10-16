@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -14,6 +15,8 @@ import {
   Select,
   Image,
   Pagination,
+  Tooltip,
+  ActionIcon,
 } from "@mantine/core";
 import { Icon } from "@iconify/react";
 import RitaseModal from "./RitaseModal";
@@ -23,50 +26,116 @@ import "dayjs/locale/id";
 import { exportToExcel } from "@/components/Export";
 
 export default function TableView({ data }) {
+
   const [selectedRow, setSelectedRow] = useState(null);
+
   const [checkedRows, setCheckedRows] = useState([]);
+
   const [opened, setOpened] = useState(false);
+
   const [editData, setEditData] = useState(null);
+
   const [search, setSearch] = useState("");
+
   const [ssPreview, setSsPreview] = useState(null);
+
   const [page, setPage] = useState(1);
-  const [filteredData, setFilteredData] = useState(data);
+
+  const [filteredData, setFilteredData] = useState([]);
+
   const [timeFilter, setTimeFilter] = useState(null);
+
   const itemsPerPage = 10;
 
+
+
+  // 🔹 Normalisasi data agar aman
+
+  const normalizedData = Array.isArray(data)
+
+    ? data
+
+    : Array.isArray(data?.ritase)
+
+    ? data.ritase
+
+    : [];
+
+
+
+  const formattedData = normalizedData.map((item) => ({
+    ...item,
+    id: item.id,
+    name: item.user?.nama || "-",
+    plate: item.user?.no_pol || "-",
+    category: item.user?.kategori || "-",
+    pickup: item.pickup_point || "-",
+    destination: item.tujuan || "-",
+    ss: item.ss_order || null,
+    date: item.createdAt
+      ? dayjs(item.createdAt).locale("id").format("YYYY-MM-DD")
+      : "-",
+    time: item.createdAt
+      ? dayjs(item.createdAt).locale("id").format("HH:mm")
+      : "-",
+  }));
+
+
+  // 🔹 Jam filter (07:00 - 23:00)
+
   const hours = Array.from({ length: 18 }, (_, i) => {
+
     const hour = 7 + i;
-    const label = hour.toString().padStart(2, "0") + ":00";
+
+    const label = `${hour.toString().padStart(2, "0")}:00`;
+
     return { value: label, label };
+
   });
 
+
+
+  // 🔍 Filtering
+
   useEffect(() => {
-  setFilteredData(
-    data.filter((d) => {
+    const searchText = search.toLowerCase();
+const filtered = formattedData.filter((d) => {
+
       const matchSearch =
-        d.plate.toLowerCase().includes(search.toLowerCase()) ||
-        d.name.toLowerCase().includes(search.toLowerCase());
+        d.plate.toLowerCase().includes(searchText) ||
+        d.name.toLowerCase().includes(searchText) ||
+        d.pickup.toLowerCase().includes(searchText) ||
+        d.destination.toLowerCase().includes(searchText);
 
       let matchTime = true;
       if (timeFilter && d.time) {
-        const rowHour = parseInt(d.time.split(":")[0], 10); // ambil jam dari "HH:mm"
-        const filterHour = parseInt(timeFilter.split(":")[0], 10);
-        matchTime = rowHour === filterHour; // semua jam yang sama dengan jam filter
-      }
 
+        const rowHour = parseInt(d.time.split(":")[0], 10);
+        const filterHour = parseInt(timeFilter.split(":")[0], 10);
+        matchTime = rowHour === filterHour;
+      }
       return matchSearch && matchTime;
-    })
-  );
-  setPage(1);
-}, [search, data, timeFilter]);
+    });
+
+    setFilteredData(filtered);
+    setPage(1);
+  }, [search, timeFilter, data]);
+
 
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
   const paginatedData = filteredData.slice(
+
     (page - 1) * itemsPerPage,
+
     page * itemsPerPage
+
   );
 
+
+
+  // 🔹 Checkbox
   const toggleCheck = (id) => {
     setCheckedRows((prev) =>
       prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]
@@ -81,8 +150,16 @@ export default function TableView({ data }) {
   const handleSubmit = (form) => {
     if (editData) console.log("Update data:", form);
     else console.log("Create data:", form);
+    setOpened(false);
   };
 
+  // 🔹 Edit
+  const handleEdit = (row) => {
+    setEditData(row);
+    setOpened(true);
+  };
+
+  // 🔹 Hapus
   const openDeleteConfirm = (ids) => {
     modals.openConfirmModal({
       title: "Konfirmasi Hapus",
@@ -103,16 +180,12 @@ export default function TableView({ data }) {
   };
 
   const handleDelete = (ids) => {
-    if (Array.isArray(ids)) {
-      console.log("Menghapus beberapa ID:", ids);
-      setCheckedRows([]);
-    } else {
-      console.log("Menghapus ID:", ids);
-    }
+    console.log("Hapus:", ids);
+    setCheckedRows([]);
     modals.closeAll();
   };
 
-  const platNo = data.map((item) => ({
+  const platNo = formattedData.map((item) => ({
     value: item.plate,
     label: item.plate,
   }));
@@ -121,28 +194,39 @@ export default function TableView({ data }) {
     id: "No",
     name: "Nama Driver",
     plate: "Plat Nomor",
-    category: "Kategori Driver",
+    category: "Kategori",
     destination: "Tujuan",
     pickup: "Titik Jemput",
     date: "Tanggal",
     time: "Jam",
-    ss: "Bukti SS",
+  };
+
+  // 🔹 View SS
+  const handleSSView = (ssUrl) => {
+    if (ssUrl) {
+      setSsPreview(ssUrl);
+    } else {
+      modals.open({
+        title: "Bukti SS Belum Tersedia",
+        children: (
+          <Text size="sm">
+            Bukti <i>screenshot</i> untuk ritase ini belum diunggah.
+          </Text>
+        ),
+      });
+    }
   };
 
   const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
+  useEffect(() => setMounted(true), []);
   if (!mounted) return null;
 
   return (
     <div className="w-full relative">
-      {/* 🔍 Header Atas */}
+      {/* 🔍 Filter Bar & Actions */}
       <Group justify="space-between" className="p-4 flex-wrap gap-3">
         <TextInput
-          placeholder="Cari"
+          placeholder="Cari..."
           value={search}
           onChange={(e) => setSearch(e.currentTarget.value)}
           leftSection={<Icon icon="mdi:magnify" />}
@@ -156,10 +240,21 @@ export default function TableView({ data }) {
           className="w-full lg:w-40"
         />
         <Group>
+          {checkedRows.length > 0 && (
+            <Button
+              color="red"
+              leftSection={<Icon icon="mdi:trash-can" />}
+              onClick={() => openDeleteConfirm(checkedRows)}
+            >
+              Hapus ({checkedRows.length})
+            </Button>
+          )}
           <Button
             color="yellow"
             leftSection={<Icon icon="mdi:download" />}
-            onClick={() => exportToExcel(filteredData, "Ritase HMS.xlsx", headers)}
+            onClick={() =>
+              exportToExcel(filteredData, "Ritase HMS.xlsx", headers)
+            }
           >
             Unduh
           </Button>
@@ -169,6 +264,7 @@ export default function TableView({ data }) {
             onClick={() => {
               setEditData(null);
               setOpened(true);
+
             }}
           >
             Tambah

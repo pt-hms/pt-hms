@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Modal,
   TextInput,
@@ -12,36 +12,48 @@ import {
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import { useForm } from "@mantine/form";
 import { Icon } from "@iconify/react";
-import { DateInput, TimeInput } from "@mantine/dates";
+import { DateTimePicker } from "@mantine/dates";
 
 export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
   const [preview, setPreview] = useState(null);
+  const [selectedUserImg, setSelectedUserImg] = useState(null);
+
   const form = useForm({
     initialValues: {
       plate: "",
       pickup: "",
       destination: "",
-      time: "",
-      date: "",
+      datetime: null,
       ss: null,
     },
     validate: {
-      plate: (value) => (!value ? "Nomor polisi wajib diisi" : null),
-      pickup: (value) => (!value ? "Pickup point wajib diisi" : null),
-      destination: (value) => (!value ? "Tujuan wajib diisi" : null),
-      time: (value) => (!value ? "Jam wajib diisi" : null),
-      date: (value) => (!value ? "Tanggal wajib diisi" : null),
+      plate: (v) => (!v ? "Nomor polisi wajib diisi" : null),
+      datetime: (v) => (!v ? "Tanggal & waktu wajib diisi" : null),
     },
   });
 
-  // Prefill form saat edit
+  // Prefill saat edit
   useEffect(() => {
     if (data) {
-      form.setValues(data);
-      if (data.ss) setPreview(data.ss);
+      form.setValues({
+        plate: data.user?.no_pol || data.plate || "",
+        pickup: data.pickup_point || "",
+        destination: data.tujuan || "",
+        datetime: data.createdAt ? new Date(data.createdAt) : null,
+        ss: null,
+      });
+
+      if (data.ss_order) {
+        setPreview(data.ss_order);
+      } else if (data.user?.foto_profil) {
+        setPreview(data.user.foto_profil);
+      } else {
+        setPreview(null);
+      }
     } else {
       form.reset();
       setPreview(null);
+      setSelectedUserImg(null);
     }
   }, [data]);
 
@@ -49,11 +61,29 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
     onSubmit(values);
     form.reset();
     setPreview(null);
+    setSelectedUserImg(null);
     onClose();
   };
 
-//   console.log(allData);
-  
+  // 🔄 Filter plat unik
+  const availablePlates = useMemo(() => {
+    const unique = plat.filter(
+      (p, i, self) => i === self.findIndex((x) => x.value === p.value)
+    );
+    return unique;
+  }, [plat]);
+
+  // 🔄 Update foto profil berdasarkan plat
+  useEffect(() => {
+    const selected = plat.find((p) => p.value === form.values.plate);
+    if (selected && selected.user?.foto_profil) {
+      setSelectedUserImg(selected.user.foto_profil);
+      if (!preview) setPreview(selected.user.foto_profil);
+    } else if (!form.values.plate) {
+      setSelectedUserImg(null);
+      setPreview(null);
+    }
+  }, [form.values.plate]);
 
   return (
     <Modal
@@ -61,6 +91,7 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
       onClose={() => {
         form.reset();
         setPreview(null);
+        setSelectedUserImg(null);
         onClose();
       }}
       title={data ? "Ubah Data Ritase" : "Tambah Data Ritase"}
@@ -70,31 +101,41 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
     >
       <Box component="form" onSubmit={form.onSubmit(handleSubmit)}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Bagian Input Data */}
+          {/* Bagian Input */}
           <div className="grid grid-cols-1 gap-3 lg:col-span-2">
-            <Select 
-            label="Plat Nomor"
-            data={plat} 
-            {...form.getInputProps("plate")} />
-            {data &&
-            <>
-            <TextInput label="Pickup Point" {...form.getInputProps("pickup")} />
-            <TextInput label="Tujuan" {...form.getInputProps("destination")} />
-            </>
-          }
-            <TimeInput
-                        label="Jam"
-                        {...form.getInputProps("time")}
-                        />
-                        <DateInput
-                          label="Tanggal"
-                          locale="id"
-                          valueFormat="DD MMMM YYYY"
-                          {...form.getInputProps("date")}
-                          />
+            <Select
+              label="Plat Nomor"
+              placeholder="Pilih plat..."
+              data={availablePlates}
+              {...form.getInputProps("plate")}
+            />
+
+            {/* Field pickup & tujuan hanya muncul saat edit */}
+            {data && (
+              <>
+                <TextInput
+                  label="Pickup Point"
+                  placeholder="Masukkan pickup point"
+                  {...form.getInputProps("pickup")}
+                />
+                <TextInput
+                  label="Tujuan"
+                  placeholder="Masukkan tujuan"
+                  {...form.getInputProps("destination")}
+                />
+              </>
+            )}
+
+            <DateTimePicker
+              label="Tanggal & Waktu"
+              placeholder="Pilih tanggal dan jam"
+              valueFormat="DD MMM YYYY, HH:mm"
+              locale="id"
+              {...form.getInputProps("datetime")}
+            />
           </div>
 
-          {/* Dropzone dengan Preview */}
+          {/* Dropzone + Preview */}
           <div className="flex flex-col items-center justify-center gap-3">
             <Dropzone
               accept={IMAGE_MIME_TYPE}
@@ -109,8 +150,7 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
               onReject={() => alert("File tidak valid, pilih gambar PNG/JPG")}
               className="w-full h-[240px] border-2 border-dashed border-gray-300 rounded-lg flex justify-center items-center overflow-hidden cursor-pointer hover:bg-gray-50 transition relative"
             >
-              {/* Jika belum ada gambar */}
-              {!preview && (
+              {!preview ? (
                 <div className="flex flex-col items-center text-center text-gray-600">
                   <Icon
                     icon="mdi:cloud-upload-outline"
@@ -125,13 +165,10 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
                     (Hanya PNG atau JPG, rasio layar HP disarankan)
                   </p>
                 </div>
-              )}
-
-              {/* Jika sudah ada preview */}
-              {preview && (
+              ) : (
                 <Image
                   src={preview}
-                  alt="Preview SS"
+                  alt="Preview Gambar"
                   width="100%"
                   height="100%"
                   fit="cover"
@@ -140,14 +177,13 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
               )}
             </Dropzone>
 
-            {/* Tombol ganti file kalau sudah ada preview */}
             {preview && (
               <Button
                 size="xs"
                 variant="light"
                 color="red"
                 onClick={() => {
-                  setPreview(null);
+                  setPreview(selectedUserImg || null);
                   form.setFieldValue("ss", null);
                 }}
               >
@@ -164,6 +200,7 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
             onClick={() => {
               form.reset();
               setPreview(null);
+              setSelectedUserImg(null);
               onClose();
             }}
           >

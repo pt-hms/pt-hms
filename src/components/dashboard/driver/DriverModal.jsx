@@ -12,9 +12,11 @@ import {
   Text,
 } from "@mantine/core";
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
+import { notifications } from "@mantine/notifications";
 import { useForm } from "@mantine/form";
 import { Icon } from "@iconify/react";
 import { DateInput } from "@mantine/dates";
+import { createDriver, updateDriver } from "@/utils/api/driver";
 
 // password admin
 const ADMIN_SECRET_PASSWORD = "12345678"; // Pastikan ini sudah benar
@@ -159,13 +161,35 @@ function DriverFormModal({ opened, onClose, data, onSubmit }) {
       setPreview(null);
     }
   }, [data]);
+  
+  
 
-  const handleSubmit = (values) => {
-    onSubmit(values);
+   const handleSubmit = async (values) => {
+          console.log(values);
+  
+          try {
+              const formData = new FormData();
+              Object.entries(values).forEach(([key, value]) => {
+                  if (value instanceof File) {
+                      formData.append(key, value); // untuk file
+                  } else if (value !== null && value !== undefined ) {
+                      formData.append(key, value); // untuk string/tanggal
+                  }
+              });
+
+              {data ? await updateDriver(formData, data.id) : await createDriver(formData)}
+          } catch (err) {
+              notifications.show({
+                  title: "Registrasi Gagal",
+                  message: err.response?.data?.message || "Terjadi kesalahan.",
+                  color: "red",
+              });
+          } finally {
     form.reset();
     setPreview(null);
     onClose();
-  };
+          }
+      };
 
   return (
     <Modal
@@ -189,8 +213,8 @@ function DriverFormModal({ opened, onClose, data, onSubmit }) {
               label="Kategori Driver"
               placeholder="Pilih kategori"
               data={[
-                { value: "PREMIUM", label: "Premium" },
-                { value: "REGULER", label: "Reguler" },
+                { value: "Premium", label: "PREMIUM" },
+                { value: "Reguler", label: "REGULER" },
               ]}
               {...form.getInputProps("kategori")}
             />

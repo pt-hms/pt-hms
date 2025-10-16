@@ -1,300 +1,144 @@
-import { Icon } from "@iconify/react"
+"use client";
+import { Icon } from "@iconify/react";
 import Card from "@/components/dashboard/Card";
+import { useEffect, useState } from "react";
+import { getDashboard } from "@/utils/api/dashboard";
+import { Button } from "@mantine/core";
+import { DatePickerInput } from "@mantine/dates";
+import GlobalLoader from "@/components/GlobalLoader";
+import dayjs from "dayjs";
+import "dayjs/locale/id";
 
-export default function page() {
-  const dummyUser = [
-    {
-      id: 1,
-      name: "Budi Santoso",
-      plate: "B 1234 CD",
-      car: "Avanza",
-      category: "PREMIUM",
-      kep_number: "C 1234",
-      period: "2025-10-11",
-      phone: "083870781774",
-      emergency_phone: "083870781774",
-      profile: "/profil.jpeg",
-      password: "123456",
-    },
-    {
-      id: 2,
-      name: "Siti Aisyah",
-      plate: "F 5678 GH",
-      car: "Xenia",
-      category: "REGULER",
-      kep_number: "F 5678",
-      period: "2025-10-11",
-      phone: "081234567890",
-      emergency_phone: "081234567890",
-      profile: "/profil.jpeg",
-      password: "123456",
-    },
-    {
-      id: 3,
-      name: "Ahmad Fauzi",
-      plate: "B 9876 KL",
-      car: "Mobilio",
-      category: "PREMIUM",
-      kep_number: "B 9876",
-      period: "2025-10-11",
-      phone: "082345678901",
-      emergency_phone: "082345678901",
-      profile: "/profil.jpeg",
-      password: "123456",
-    },
-    {
-      id: 4,
-      name: "Rina Marlina",
-      plate: "F 2222 ZZ",
-      car: "Brio",
-      category: "REGULER",
-      kep_number: "F 2222",
-      period: "2025-10-11",
-      phone: "083456789012",
-      emergency_phone: "083456789012",
-      profile: "/profil.jpeg",
-      password: "123456",
-    },
-    {
-      id: 5,
-      name: "Andi Pratama",
-      plate: "B 4567 OP",
-      car: "Fortuner",
-      category: "PREMIUM",
-      kep_number: "B 4567",
-      period: "2025-10-11",
-      phone: "081567890123",
-      emergency_phone: "081567890123",
-      profile: "/profil.jpeg",
-      password: "123456",
-    },
-    {
-      id: 6,
-      name: "Dewi Kusuma",
-      plate: "F 8899 RT",
-      car: "Jazz",
-      category: "REGULER",
-      kep_number: "F 8899",
-      period: "2025-10-11",
-      phone: "082678901234",
-      emergency_phone: "082678901234",
-      profile: "/profil.jpeg",
-      password: "123456",
-    },
-    {
-      id: 7,
-      name: "Eko Wijaya",
-      plate: "B 1122 MN",
-      car: "Xpander",
-      category: "PREMIUM",
-      kep_number: "B 1122",
-      period: "2025-10-11",
-      phone: "083789012345",
-      emergency_phone: "083789012345",
-      profile: "/profil.jpeg",
-      password: "123456",
-    },
-    {
-      id: 8,
-      name: "Fitriani",
-      plate: "F 3344 PQ",
-      car: "Mobilio",
-      category: "REGULER",
-      kep_number: "F 3344",
-      period: "2025-10-11",
-      phone: "081890123456",
-      emergency_phone: "081890123456",
-      profile: "/profil.jpeg",
-      password: "123456",
-    },
-    {
-      id: 9,
-      name: "Joko Saputra",
-      plate: "B 7788 WX",
-      car: "Avanza",
-      category: "PREMIUM",
-      kep_number: "B 7788",
-      period: "2025-10-11",
-      phone: "082901234567",
-      emergency_phone: "082901234567",
-      profile: "/profil.jpeg",
-      password: "123456",
-    },
-    {
-      id: 10,
-      name: "Lestari Wulandari",
-      plate: "F 9900 UV",
-      car: "Brio",
-      category: "REGULER",
-      kep_number: "F 9900",
-      period: "2025-10-11",
-      phone: "083012345678",
-      emergency_phone: "083012345678",
-      profile: "/profil.jpeg",
-      password: "123456",
-    },
-    {
-      id: 11,
-      name: "Agus Hidayat",
-      plate: "B 2233 QR",
-      car: "Fortuner",
-      category: "PREMIUM",
-      kep_number: "B 2233",
-      period: "2025-10-11",
-      phone: "081123456789",
-      emergency_phone: "081123456789",
-      profile: "/profil.jpeg",
-      password: "123456",
-    },
-    {
-      id: 12,
-      name: "Nia Rahma",
-      plate: "F 4455 TU",
-      car: "Jazz",
-      category: "REGULER",
-      kep_number: "F 4455",
-      period: "2025-10-11",
-      phone: "082234567890",
-      emergency_phone: "082234567890",
-      profile: "/profil.jpeg",
-      password: "123456",
-    },
-  ]
+dayjs.locale("id");
 
-  const dummyRitase = [
-    {
-      id: 1,
-      name: "Budi Santoso",
-      plate: "B 1234 CD",
-      category: "PREMIUM",
-      pickup: "Bogor",
-      destination: "Jakarta",
-      ss: "/profil.jpeg",
-      date: "2025-10-11",
-    },
-    {
-      id: 2,
-      name: "Siti Aisyah",
-      plate: "F 5678 GH",
-      category: "REGULER",
-      pickup: "Cibinong",
-      destination: "Depok",
-      ss: "/profil.jpeg",
-      date: "2025-10-10",
-    },
-    {
-      id: 3,
-      name: "Ahmad Fauzi",
-      plate: "B 9876 KL",
-      category: "PREMIUM",
-      pickup: "Ciawi",
-      destination: "Jakarta Selatan",
-      ss: "/profil.jpeg",
-      date: "2025-10-09",
-    },
-    {
-      id: 4,
-      name: "Rina Marlina",
-      plate: "F 2222 ZZ",
-      category: "REGULER",
-      pickup: "Dramaga",
-      destination: "Bogor",
-      ss: "/profil.jpeg",
-      date: "2025-10-08",
-    },
-    {
-      id: 5,
-      name: "Andi Pratama",
-      plate: "B 4567 OP",
-      category: "PREMIUM",
-      pickup: "Sentul",
-      destination: "Bekasi",
-      ss: "/profil.jpeg",
-      date: "2025-10-07",
-    },
-    {
-      id: 6,
-      name: "Dewi Kusuma",
-      plate: "F 8899 RT",
-      category: "REGULER",
-      pickup: "Cisarua",
-      destination: "Jakarta Timur",
-      ss: "/profil.jpeg",
-      date: "2025-10-06",
-    },
-    {
-      id: 7,
-      name: "Eko Wijaya",
-      plate: "B 1122 MN",
-      category: "PREMIUM",
-      pickup: "Bogor Tengah",
-      destination: "Cibubur",
-      ss: "/profil.jpeg",
-      date: "2025-10-05",
-    },
-    {
-      id: 8,
-      name: "Fitriani",
-      plate: "F 3344 PQ",
-      category: "REGULER",
-      pickup: "Ciluar",
-      destination: "Depok",
-      ss: "/profil.jpeg",
-      date: "2025-10-04",
-    },
-    {
-      id: 9,
-      name: "Joko Saputra",
-      plate: "B 7788 WX",
-      category: "PREMIUM",
-      pickup: "Bogor Barat",
-      destination: "Tangerang",
-      ss: "/profil.jpeg",
-      date: "2025-10-03",
-    },
-    {
-      id: 10,
-      name: "Lestari Wulandari",
-      plate: "F 9900 UV",
-      category: "REGULER",
-      pickup: "Cibinong",
-      destination: "Jakarta Pusat",
-      ss: "/profil.jpeg",
-      date: "2025-10-02",
-    },
-    {
-      id: 11,
-      name: "Agus Hidayat",
-      plate: "B 2233 QR",
-      category: "PREMIUM",
-      pickup: "Dramaga",
-      destination: "Jakarta Barat",
-      ss: "/profil.jpeg",
-      date: "2025-10-01",
-    },
-    {
-      id: 12,
-      name: "Nia Rahma",
-      plate: "F 4455 TU",
-      category: "REGULER",
-      pickup: "Cibinong",
-      destination: "Bogor Selatan",
-      ss: "/profil.jpeg",
-      date: "2025-09-30",
-    },
-  ]
+export default function Page() {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [previewText, setPreviewText] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date()); // default hari ini
+
+  const fetchData = async (date) => {
+    setLoading(true);
+    try {
+      // format tanggal untuk request
+      const formattedDate = dayjs(date).format("YYYY-MM-DD");
+      const res = await getDashboard(formattedDate); // misal backend: /dashboard?date=YYYY-MM-DD
+      setData(res);
+
+      if (res && Array.isArray(res.report)) {
+        const today = dayjs(date).format("dddd, DD MMMM YYYY").toUpperCase();
+        let totalRides = 0;
+        let totalDAD = 0;
+
+        let report = `*Flash Report*\n${today}\n\n_Daily Ritase by Hours_\nPT. ( HMS )\n\n`;
+
+        res.report.forEach((d) => {
+          report += `*Jam ${d.jam}*\n`;
+          report += `*GCA Rides :* ${d.rides}\n`;
+          report += `*GCA Daily Active Driver :* ${d.dailyActiveDriver}\n`;
+          report += `*GCA Driver Standby :* \n\n`;
+
+          totalRides += d.rides || 0;
+          totalDAD += d.dailyActiveDriver || 0;
+        });
+
+        report += `*TOTAL DAD :* ${totalDAD}\n`;
+        report += `*TOTAL RIDES :* ${totalRides}\n`;
+        report += `*STANDBY POOL :* \n`;
+
+        setPreviewText(report);
+      } else {
+        setPreviewText("Tidak ada data laporan untuk tanggal ini.");
+      }
+    } catch (err) {
+      console.error("Gagal ambil data dashboard:", err);
+      setPreviewText("Gagal memuat data laporan.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch saat komponen pertama kali render
+  useEffect(() => {
+    fetchData(selectedDate);
+  }, []);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(previewText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Gagal copy:", err);
+    }
+  };
 
   const card = [
-    { nama: "Driver", data: dummyUser.length, bg: "bg-blue-100", text: "text-blue-800", icon: "mdi:users" },
-    { nama: "Ritase Minggu Ini", data: dummyRitase.length, bg: "bg-green-100", text: "text-green-800", icon: "lets-icons:order-light" },
-
+    {
+      nama: "DAD",
+      data: data?.total?.totalDailyActiveDriver,
+      bg: "bg-blue-100",
+      text: "text-blue-800",
+      icon: "mdi:users",
+    },
+    {
+      nama: "Ritase",
+      data: data?.total?.totalRides,
+      bg: "bg-green-100",
+      text: "text-green-800",
+      icon: "lets-icons:order-light",
+    },
   ];
 
   return (
     <div>
-      <div className="flex flex-wrap gap-2 lg:gap-4 w-full justify-center">
-        {card.map((menu) => <Card key={menu.nama} nama={menu.nama} data={menu.data} bg={menu.bg} text={menu.text} icon={menu.icon} />)}
+      {/* Filter Tanggal */}
+      <div className="flex justify-end mb-4">
+        <DatePickerInput
+          placeholder="Pilih tanggal laporan"
+          value={selectedDate}
+          onChange={(val) => {
+            setSelectedDate(val);
+            fetchData(val);
+          }}
+          valueFormat="DD MMMM YYYY"
+          locale="id"
+          clearable={false}
+        />
       </div>
+
+      {/* Card Ringkasan */}
+      <div className="flex flex-wrap gap-2 lg:gap-4 w-full justify-center">
+        {card.map((menu) => (
+          <Card
+            key={menu.nama}
+            nama={menu.nama}
+            data={menu.data}
+            bg={menu.bg}
+            text={menu.text}
+            icon={menu.icon}
+          />
+        ))}
+      </div>
+
+      {/* Preview Laporan */}
+      {previewText && (
+        <div className="relative mt-6 w-full max-w-xl mx-auto">
+          <pre className="p-4 border rounded bg-gray-50 whitespace-pre-wrap w-full overflow-auto max-h-[70vh] relative">
+            <Button
+              onClick={handleCopy}
+              variant="transparent"
+              color="black"
+              leftSection={<Icon icon="solar:copy-bold" />}
+              className="sticky top-1 right-1 float-right rounded text-sm transition"
+            >
+              {copied ? "Copied!" : "Copy"}
+            </Button>
+            {previewText}
+          </pre>
+        </div>
+      )}
     </div>
-  )
+  );
 }

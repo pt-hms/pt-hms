@@ -5,6 +5,7 @@ export async function uploadTF(bukti) {
         headers: { "Content-Type": "multipart/form-data" },
     });
     return res.data;
+
 }
 
 export async function getTF() {

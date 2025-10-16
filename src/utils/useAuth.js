@@ -52,39 +52,34 @@ export function useAuth(role = null) {
             return;
         }
 
-        const checkBuktiTF = async () => {
-            try {
-                // Ambil status bukti_tf dari API /tf
-                const res = await axiosInstance.get(`/tf`);
-                const buktiTF = res.data.tf; // sesuaikan dengan response API\
-                console.log(buktiTF);
+        // Set user dulu agar UI bisa render
+        setUser(userData);
+        setLoading(false);
 
-                // Jika driver belum upload bukti_tf → paksa ke /sij
-                if (userData.role === "driver" && !buktiTF) {
-                    router.replace("/sij");
-                    return;
-                }
+        // cek buktiTF async, tapi tidak block UI
+        if (userData.role === "driver") {
+            axiosInstance.get("/tf")
+                .then(res => {
+                    const buktiTF = res.data.tf;
+                    if (!buktiTF) {
+                        router.replace("/sij"); // redirect jika belum ada
+                    }
+                })
+                .catch(err => {
+                    console.error("Failed to check bukti_tf:", err);
+                    router.replace("/");
+                });
+        }
 
-                // Cek role jika ada role spesifik
-                if (role && userData.role !== role) {
-                    router.replace(userData.role === "admin" ? "/admin" : "/driver");
-                    return;
-                }
-
-                setUser(userData);
-                setLoading(false);
-            } catch (err) {
-                console.error("Failed to check bukti_tf:", err);
-                router.replace("/"); // fallback redirect
-            }
-        };
-
-        checkBuktiTF();
+        // cek role spesifik
+        if (role && userData.role !== role) {
+            router.replace(userData.role === "admin" ? "/admin" : "/driver");
+        }
     }, [router, role]);
 
     return { user, loading };
-
 }
+
 
 export function useGuest() {
     const router = useRouter();

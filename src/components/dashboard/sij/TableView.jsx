@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -15,6 +16,7 @@ import {
   Pagination,
   Select,
 } from "@mantine/core";
+import { DatePickerInput } from "@mantine/dates"; // ⬅ Tambahan
 import { Icon } from "@iconify/react";
 import RitaseModal from "./SIJModal";
 import { modals } from "@mantine/modals";
@@ -33,30 +35,42 @@ export default function TableView({ data }) {
   const [filteredData, setFilteredData] = useState(data);
   const [timeFilter, setTimeFilter] = useState(null);
 
+  // filter tanggal
+  const [dateFilter, setDateFilter] = useState(null);
+
   const itemsPerPage = 10;
-  const hours = Array.from({ length: 18 }, (_, i) => {
-    const hour = 7 + i;
-    const label = hour.toString().padStart(2, "0") + ":00";
-    return { value: label, label };
-  });
 
   // format tanggal lokal
   function localDate(date) {
     return dayjs(date).locale("id").format("HH:mm - D MMMM YYYY");
   }
 
-  // filter pencarian
+  // Filter pencarian + filter tanggal
   useEffect(() => {
-    setFilteredData(
-      data.filter((d) => {
-        const matchSearch =
-          d.no_pol.toLowerCase().includes(search.toLowerCase()) ||
-          d.nama.toLowerCase().includes(search.toLowerCase());
-        return matchSearch;
-      })
-    );
+    let newData = [...data];
+
+    // filter pencarian (nama atau no_pol)
+    if (search.trim()) {
+      newData = newData.filter((d) =>
+        d.no_pol.toLowerCase().includes(search.toLowerCase()) ||
+        d.nama.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    // filter tanggal (cek di semua sij)
+    if (dateFilter) {
+      const selectedDate = dayjs(dateFilter).startOf("day");
+      newData = newData.map((d) => ({
+        ...d,
+        sij: d.sij?.filter((s) =>
+          dayjs(s.createdAt).isSame(selectedDate, "day")
+        ),
+      })).filter((d) => d.sij && d.sij.length > 0);
+    }
+
+    setFilteredData(newData);
     setPage(1);
-  }, [search, data]);
+  }, [search, data, dateFilter]);
 
   // pagination
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -125,20 +139,32 @@ export default function TableView({ data }) {
   return (
     <div className="w-full relative">
       {/* Header */}
-      <Group justify="space-between" className="p-4">
+      <Group justify="space-between" className="p-4 flex-wrap gap-3">
         <TextInput
-          placeholder="Cari"
+          placeholder="Cari nama atau plat nomor"
           value={search}
           onChange={(e) => setSearch(e.currentTarget.value)}
           leftSection={<Icon icon="mdi:magnify" />}
-          className="w-full lg:w-1/3"
+          className="w-full sm:w-1/3"
         />
 
-        <Group justify="space-between">
+        {/*filter tanggal */}
+        <DatePickerInput
+          placeholder="Pilih tanggal"
+          locale="id"
+          value={dateFilter}
+          onChange={setDateFilter}
+          valueFormat="DD MMMM YYYY"
+          clearable
+        />
+
+        <Group>
           <Button
             color="yellow"
             leftSection={<Icon icon="mdi:download" />}
-            onClick={() => exportToExcel(filteredData, "SIJ PT HMS.xlsx", headers)}
+            onClick={() =>
+              exportToExcel(filteredData, "SIJ PT HMS.xlsx", headers)
+            }
           >
             Unduh
           </Button>
@@ -189,7 +215,10 @@ export default function TableView({ data }) {
                   onChange={(e) => {
                     if (e.currentTarget.checked) {
                       setCheckedRows((prev) => [
-                        ...new Set([...prev, ...paginatedData.map((d) => d.id)]),
+                        ...new Set([
+                          ...prev,
+                          ...paginatedData.map((d) => d.id),
+                        ]),
                       ]);
                     } else {
                       setCheckedRows((prev) =>
@@ -210,132 +239,143 @@ export default function TableView({ data }) {
           </Table.Thead>
 
           <Table.Tbody>
-            {paginatedData.map((row, i) => (
-              <>
-                <Table.Tr
-                  key={row.id}
-                  className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                >
-                  <Table.Td>
-                    <Checkbox
-                      checked={checkedRows.includes(row.id)}
-                      onChange={() => toggleCheck(row.id)}
-                    />
-                  </Table.Td>
-                  <Table.Td>{row.nama}</Table.Td>
-                  <Table.Td>{row.no_pol}</Table.Td>
-                  <Table.Td>
-                    <Badge
-                      color={row.kategori === "PREMIUM" ? "#e10b16" : "gray"}
-                      fullWidth
-                      size="md"
-                    >
-                      {row.kategori}
-                    </Badge>
-                  </Table.Td>
-                  <Table.Td className="text-center">
-                    {row.sij && row.sij[0]?.bukti_tf ? (
+            {paginatedData.length > 0 ? (
+              paginatedData.map((row, i) => (
+                <React.Fragment key={row.id || i}>
+                  {/* Baris utama */}
+                  <Table.Tr className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                    <Table.Td>
+                      <Checkbox
+                        checked={checkedRows.includes(row.id)}
+                        onChange={() => toggleCheck(row.id)}
+                      />
+                    </Table.Td>
+                    <Table.Td>{row.nama}</Table.Td>
+                    <Table.Td>{row.no_pol}</Table.Td>
+                    <Table.Td>
+                      <Badge
+                        fullWidth
+                        size="md"
+                        variant="filled"
+                        styles={{
+                          root: {
+                            backgroundColor: row.kategori === "PREMIUM" ? "#e10b16" : "#9ca3af",
+                            color: "white",
+                          },
+                        }}
+                      >
+                        {row.kategori}
+                      </Badge>
+                    </Table.Td>
+                    <Table.Td className="text-center">
+                      {row.tf && row.tf[0]?.bukti_tf ? (
+                        <Button
+                          variant="subtle"
+                          color="green"
+                          radius="xl"
+                          size="xs"
+                          onClick={() => setSsPreview(row.tf[0].bukti_tf)}
+                        >
+                          <Icon icon="mdi:image-outline" width={18} />
+                        </Button>
+                      ) : (
+                        "-"
+                      )}
+                    </Table.Td>
+                    <Table.Td className="text-center">
                       <Button
                         variant="subtle"
-                        color="green"
+                        color="gray"
                         radius="xl"
                         size="xs"
-                        onClick={() => setSsPreview(row.sij[0].bukti_tf)}
+                        onClick={() => toggleCollapse(row.id)}
                       >
-                        <Icon icon="mdi:image-outline" width={18} />
+                        <Icon
+                          icon={
+                            selectedCollapse === row.id
+                              ? "mdi:chevron-up"
+                              : "mdi:chevron-down"
+                          }
+                          width={18}
+                        />
                       </Button>
-                    ) : (
-                      "-"
-                    )}
-                  </Table.Td>
-                  <Table.Td className="text-center">
-                    <Button
-                      variant="subtle"
-                      color="gray"
-                      radius="xl"
-                      size="xs"
-                      onClick={() => toggleCollapse(row.id)}
-                    >
-                      <Icon
-                        icon={
-                          selectedCollapse === row.id
-                            ? "mdi:chevron-up"
-                            : "mdi:chevron-down"
-                        }
-                        width={18}
-                      />
-                    </Button>
-                  </Table.Td>
-                </Table.Tr>
-
-                {selectedCollapse === row.id && (
-                  <Table.Tr>
-                    <Table.Td colSpan={6} className="bg-gray-50">
-                      <Box className="p-3 rounded-lg border border-gray-200">
-                        <Text fw={600} mb={8}>
-                          Daftar SIJ
-                        </Text>
-                        <Table
-                          striped
-                          highlightOnHover
-                          withColumnBorders
-                          className="mt-2"
-                        >
-                          <Table.Thead>
-                            <Table.Tr>
-                              <Table.Th>NO. SIJ</Table.Th>
-                              <Table.Th>WAKTU</Table.Th>
-                              <Table.Th className="text-center">AKSI</Table.Th>
-                            </Table.Tr>
-                          </Table.Thead>
-                          <Table.Tbody>
-                            {row.sij?.map((s) => (
-                              <Table.Tr key={s.id}>
-                                <Table.Td>{s.no_sij}</Table.Td>
-                                <Table.Td>{localDate(s.createdAt)}</Table.Td>
-                                <Table.Td className="text-center">
-                                  <Group justify="center" gap="xs">
-                                    <Button
-                                      size="xs"
-                                      color="blue"
-                                      leftSection={
-                                        <Icon icon="mdi:pencil" width={16} />
-                                      }
-                                      onClick={() => {
-                                        setEditData( {
-                                          id: row.id,
-                                          no_pol: row.no_pol,
-                                          createdAt: s.createdAt,
-                                          bukti_tf: s.bukti_tf,
-                                          no_sij: s.no_sij
-                                        });
-                                        setOpened(true);
-                                      }}
-                                    >
-                                      Edit
-                                    </Button>
-                                    <Button
-                                      size="xs"
-                                      color="red"
-                                      leftSection={
-                                        <Icon icon="mdi:trash-can" width={16} />
-                                      }
-                                      onClick={() => openDeleteConfirm(s.id)}
-                                    >
-                                      Hapus
-                                    </Button>
-                                  </Group>
-                                </Table.Td>
-                              </Table.Tr>
-                            ))}
-                          </Table.Tbody>
-                        </Table>
-                      </Box>
                     </Table.Td>
                   </Table.Tr>
-                )}
-              </>
-            ))}
+
+                  {/* Baris collapse */}
+                  {selectedCollapse === row.id && (
+                    <Table.Tr key={`collapse-${row.id}`}>
+                      <Table.Td colSpan={6} className="bg-gray-50">
+                        <Box className="p-3 rounded-lg border border-gray-200">
+                          <Text fw={600} mb={8}>
+                            Daftar SIJ
+                          </Text>
+                          <Table
+                            striped
+                            highlightOnHover
+                            withColumnBorders
+                            className="mt-2"
+                          >
+                            <Table.Thead>
+                              <Table.Tr>
+                                <Table.Th>NO. SIJ</Table.Th>
+                                <Table.Th>WAKTU</Table.Th>
+                                <Table.Th className="text-center">AKSI</Table.Th>
+                              </Table.Tr>
+                            </Table.Thead>
+                            <Table.Tbody>
+                              {row.sij?.map((s) => (
+                                <Table.Tr key={s.id}>
+                                  <Table.Td>{s.no_sij}</Table.Td>
+                                  <Table.Td>{localDate(s.createdAt)}</Table.Td>
+                                  <Table.Td className="text-center">
+                                    <Group justify="center" gap="xs">
+                                      <Button
+                                        size="xs"
+                                        color="blue"
+                                        leftSection={<Icon icon="mdi:pencil" width={16} />}
+                                        onClick={() => {
+                                          setEditData({
+                                            id: row.id,
+                                            no_pol: row.no_pol,
+                                            createdAt: s.createdAt,
+                                            bukti_tf: s.bukti_tf,
+                                            no_sij: s.no_sij,
+                                          });
+                                          setOpened(true);
+                                        }}
+                                      >
+                                        Edit
+                                      </Button>
+                                      <Button
+                                        size="xs"
+                                        color="red"
+                                        leftSection={
+                                          <Icon icon="mdi:trash-can" width={16} />
+                                        }
+                                        onClick={() => openDeleteConfirm(s.id)}
+                                      >
+                                        Hapus
+                                      </Button>
+                                    </Group>
+                                  </Table.Td>
+                                </Table.Tr>
+                              ))}
+                            </Table.Tbody>
+                          </Table>
+                        </Box>
+                      </Table.Td>
+                    </Table.Tr>
+                  )}
+                </React.Fragment>
+              ))
+            ) : (
+              <Table.Tr>
+                <Table.Td colSpan={6} className="text-center text-gray-500 py-6">
+                  Tidak ada data untuk tanggal ini
+                </Table.Td>
+              </Table.Tr>
+            )}
           </Table.Tbody>
         </Table>
 

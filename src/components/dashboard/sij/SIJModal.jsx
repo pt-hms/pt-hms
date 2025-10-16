@@ -11,7 +11,7 @@ import {
 import { Dropzone, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import { useForm } from "@mantine/form";
 import { Icon } from "@iconify/react";
-import { DateInput, TimeInput } from "@mantine/dates";
+import { DateTimePicker } from "@mantine/dates";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -20,20 +20,18 @@ import "dayjs/locale/id";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
+export default function SIJModal({ opened, onClose, data, plat, onSubmit }) {
   const [preview, setPreview] = useState(null);
 
   const form = useForm({
     initialValues: {
       no_pol: "",
-      time: null,  // string HH:mm
-      date: null,  // Date object
+      datetime: null, // gabungan tanggal dan jam
       bukti_tf: null,
     },
     validate: {
       no_pol: (value) => (!value ? "Nomor polisi wajib diisi" : null),
-      time: (value) => (!value ? "Jam wajib diisi" : null),
-      date: (value) => (!value ? "Tanggal wajib diisi" : null),
+      datetime: (value) => (!value ? "Tanggal & jam wajib diisi" : null),
     },
   });
 
@@ -44,15 +42,13 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
         const dtLocal = dayjs(data.createdAt).tz(dayjs.tz.guess());
         form.setValues({
           no_pol: data.no_pol || "",
-          date: dtLocal.toDate(),         // DateInput
-          time: dtLocal.format("HH:mm"),  // TimeInput sebagai string "HH:mm"
+          datetime: dtLocal.toDate(),
           bukti_tf: data.bukti_tf || null,
         });
       } else {
         form.setValues({
           no_pol: data.no_pol || "",
-          date: null,
-          time: null,
+          datetime: null,
           bukti_tf: data.bukti_tf || null,
         });
       }
@@ -65,18 +61,7 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
 
   const handleSubmit = (values) => {
     try {
-      const datePart = new Date(values.date);
-
-      // Jika TimeInput string "HH:mm"
-      const [hours, minutes] = values.time.split(":").map(Number);
-
-      const combinedDate = new Date(datePart);
-      combinedDate.setHours(hours);
-      combinedDate.setMinutes(minutes);
-      combinedDate.setSeconds(0);
-      combinedDate.setMilliseconds(0);
-
-      const createdAt = combinedDate.toISOString();
+      const createdAt = new Date(values.datetime).toISOString();
 
       const payload = {
         no_pol: values.no_pol,
@@ -90,7 +75,7 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
       setPreview(null);
       onClose();
     } catch (error) {
-      console.error("Gagal memproses tanggal/jam:", error);
+      console.error("Gagal memproses tanggal & jam:", error);
     }
   };
 
@@ -111,21 +96,17 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Input Data */}
           <div className="grid grid-cols-1 gap-3 lg:col-span-2">
-            <Select 
+            <Select
               label="Plat Nomor"
-              data={plat} 
-              {...form.getInputProps("no_pol")} 
+              data={plat}
+              {...form.getInputProps("no_pol")}
             />
-            <TimeInput
-              label="Jam"
-              {...form.getInputProps("time")}
-              format="24" // format 24 jam
-            />
-            <DateInput
-              label="Tanggal"
+            <DateTimePicker
+              label="Tanggal & Jam"
               locale="id"
-              valueFormat="DD MMMM YYYY"
-              {...form.getInputProps("date")}
+              valueFormat="DD MMMM YYYY HH:mm"
+              placeholder="Pilih tanggal dan jam"
+              {...form.getInputProps("datetime")}
             />
           </div>
 
@@ -146,9 +127,18 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
             >
               {!preview && (
                 <div className="flex flex-col items-center text-center text-gray-600">
-                  <Icon icon="mdi:cloud-upload-outline" width={50} height={50} color="#1c7ed6" />
-                  <p className="mt-2 text-sm font-medium">Klik atau tarik file bukti SS</p>
-                  <p className="text-xs text-gray-400">(Hanya PNG atau JPG, rasio layar HP disarankan)</p>
+                  <Icon
+                    icon="mdi:cloud-upload-outline"
+                    width={50}
+                    height={50}
+                    color="#1c7ed6"
+                  />
+                  <p className="mt-2 text-sm font-medium">
+                    Klik atau tarik file bukti SS
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    (Hanya PNG atau JPG, rasio layar HP disarankan)
+                  </p>
                 </div>
               )}
               {preview && (

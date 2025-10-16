@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Table,
   Checkbox,
@@ -21,38 +21,55 @@ import { modals } from "@mantine/modals";
 import dayjs from "dayjs";
 import "dayjs/locale/id";
 import { exportToExcel } from "@/components/Export";
+import { getDriver } from "@/utils/api/driver";
+import GlobalLoader from "@/components/GlobalLoader";
 
-export default function TableView({ data }) {
-  const [selectedRow, setSelectedRow] = useState(null);
+export default function TableView() {
   const [checkedRows, setCheckedRows] = useState([]);
-  const [opened, setOpened] = useState(false); // untuk Modal Form (Tambah/Edit)
+  const [opened, setOpened] = useState(false);
   const [editData, setEditData] = useState(null);
   const [search, setSearch] = useState("");
   const [ssPreview, setSsPreview] = useState(null);
   const [page, setPage] = useState(1);
-  const [filteredData, setFilteredData] = useState(data);
   const [showPassword, setShowPassword] = useState({});
+  const [adminModalOpened, setAdminModalOpened] = useState(false);
+  const [driverIdToShowPassword, setDriverIdToShowPassword] = useState(null);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const itemsPerPage = 10;
 
-  // State untuk Modal Konfirmasi Password Admin
-  const [adminModalOpened, setAdminModalOpened] = useState(false);
-  const [driverIdToShowPassword, setDriverIdToShowPassword] = useState(null); 
+  // Fetch data driver
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const res = await getDriver();
+      setData(res.drivers || []);
+    } catch (err) {
+      console.error("Gagal ambil data driver:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    setFilteredData(
-      data.filter(
-        (d) =>
-          d.no_pol.toLowerCase().includes(search.toLowerCase()) ||
-          d.nama.toLowerCase().includes(search.toLowerCase())
-      )
+    fetchData();
+  }, []);
+
+  // 🔍 Filtering data efisien dengan useMemo
+  const filteredData = useMemo(() => {
+    const query = search.toLowerCase();
+    return data.filter(
+      (d) =>
+        d.no_pol?.toLowerCase().includes(query) ||
+        d.nama?.toLowerCase().includes(query)
     );
-    setPage(1); 
   }, [search, data]);
 
+  // Pagination efisien
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const paginatedData = filteredData.slice(
-    (page - 1) * itemsPerPage,
-    page * itemsPerPage
+  const paginatedData = useMemo(
+    () => filteredData.slice((page - 1) * itemsPerPage, page * itemsPerPage),
+    [filteredData, page]
   );
 
   const toggleCheck = (id) => {
@@ -61,14 +78,19 @@ export default function TableView({ data }) {
     );
   };
 
-  const handleShowDetail = (row) => {
-    if (selectedRow && selectedRow.id === row.id) setSelectedRow(null);
-    else setSelectedRow(row);
+  // 🔹 Password show/hide konfirmasi admin
+  const handleOpenAdminModal = (id) => {
+    if (showPassword[id]) {
+      setShowPassword((prev) => ({ ...prev, [id]: false }));
+    } else {
+      setDriverIdToShowPassword(id);
+      setAdminModalOpened(true);
+    }
   };
 
-  const handleSubmit = (form) => {
-    if (editData) console.log("Update data:", form);
-    else console.log("Create data:", form);
+  const handleAdminConfirm = (id) => {
+    setShowPassword((prev) => ({ ...prev, [id]: true }));
+    setDriverIdToShowPassword(null);
   };
 
   const openDeleteConfirm = (ids) => {
@@ -90,19 +112,16 @@ export default function TableView({ data }) {
     });
   };
 
-  const handleDelete = (ids) => {
-    if (Array.isArray(ids)) {
-      console.log("Menghapus beberapa ID:", ids);
-      setCheckedRows([]);
-    } else {
-      console.log("Menghapus ID:", ids);
-    }
+  const handleDelete = async (ids) => {
+    console.log("Hapus ID:", ids);
+    setCheckedRows([]);
     modals.closeAll();
+    await fetchData();
   };
 
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
+  const handleModalSubmit = async () => {
+    await fetchData();
+  };
 
   const headers = {
     id: "No",
@@ -118,46 +137,19 @@ export default function TableView({ data }) {
     foto_profil: "Foto Profil",
   };
 
-  // FUNGSI: Buka modal konfirmasi admin
-  const handleOpenAdminModal = (id) => {
-    // Jika password sedang terlihat, klik berarti menyembunyikan
-    if (showPassword[id]) {
-        setShowPassword((prev) => ({ ...prev, [id]: false }));
-    } else {
-        // Jika belum terlihat, buka modal konfirmasi
-        setDriverIdToShowPassword(id);
-        setAdminModalOpened(true);
-    }
-  };
-
-  // FUNGSI: Tampilkan password setelah konfirmasi berhasil
-  const handleAdminConfirm = (id) => {
-    setShowPassword((prev) => ({ ...prev, [id]: true }));
-    setDriverIdToShowPassword(null);
-  };
-
-  // Cari data driver yang akan ditampilkan passwordnya (gunakan data asli)
-  const driverToConfirm = driverIdToShowPassword 
-    ? data.find(d => d.id === driverIdToShowPassword)
-    : null;
-
-    function dateFormat(date) {
-        const tanggalLokal = dayjs(date).tz("Asia/Jakarta").format("DD MM YYYY");
-        return tanggalLokal
-      }
-
+  
   return (
     <div className="w-full relative">
-      {/* 🔍 Header Atas */}
-      <Group justify="space-between" className="p-4">
+      {/* 🔹 Header & Filter */}
+      <Group justify="space-between" className="p-4 flex-wrap gap-3">
         <TextInput
-          placeholder="Cari"
+          placeholder="Cari driver..."
           value={search}
           onChange={(e) => setSearch(e.currentTarget.value)}
           leftSection={<Icon icon="mdi:magnify" />}
           className="w-full lg:w-1/3"
         />
-        <Group justify="space-between">
+        <Group>
           <Button
             color="yellow"
             leftSection={<Icon icon="mdi:download" />}
@@ -174,13 +166,13 @@ export default function TableView({ data }) {
               setEditData(null);
               setOpened(true);
             }}
-          >
+            >
             Tambah
           </Button>
         </Group>
       </Group>
 
-      {/* 🔹 Table */}
+      {/* 🔹 Tabel Data */}
       <Box className="w-full bg-white shadow-sm rounded-xl overflow-x-auto border border-gray-100">
         {checkedRows.length > 0 && (
           <Box className="flex items-center justify-between bg-red-50 border-b border-red-200 px-4 py-2">
@@ -200,7 +192,7 @@ export default function TableView({ data }) {
 
         <Table striped highlightOnHover withColumnBorders>
           <Table.Thead>
-          <Table.Tr className="bg-gray-50">
+            <Table.Tr className="bg-gray-50">
               <Table.Th>
                 <Checkbox
                   checked={
@@ -208,26 +200,18 @@ export default function TableView({ data }) {
                     paginatedData.every((row) => checkedRows.includes(row.id))
                   }
                   indeterminate={
-                    paginatedData.some((row) =>
-                      checkedRows.includes(row.id)
-                    ) &&
-                    !paginatedData.every((row) =>
-                      checkedRows.includes(row.id)
-                    )
+                    paginatedData.some((row) => checkedRows.includes(row.id)) &&
+                    !paginatedData.every((row) => checkedRows.includes(row.id))
                   }
                   onChange={(e) => {
                     if (e.currentTarget.checked) {
                       setCheckedRows((prev) => [
-                        ...new Set([
-                          ...prev,
-                          ...paginatedData.map((d) => d.id),
-                        ]),
+                        ...new Set([...prev, ...paginatedData.map((d) => d.id)]),
                       ]);
                     } else {
                       setCheckedRows((prev) =>
                         prev.filter(
-                          (id) =>
-                            !paginatedData.map((d) => d.id).includes(id)
+                          (id) => !paginatedData.map((d) => d.id).includes(id)
                         )
                       );
                     }
@@ -237,47 +221,47 @@ export default function TableView({ data }) {
               <Table.Th>NAMA</Table.Th>
               <Table.Th>PLAT</Table.Th>
               <Table.Th>MOBIL</Table.Th>
-              <Table.Th>JENIS</Table.Th>
+              <Table.Th>KATEGORI</Table.Th>
               <Table.Th>NO KEP</Table.Th>
               <Table.Th>MASA BERLAKU</Table.Th>
               <Table.Th>NO TELP</Table.Th>
               <Table.Th>NO DARURAT</Table.Th>
               <Table.Th>PASSWORD</Table.Th>
               <Table.Th>AKSI</Table.Th>
-          </Table.Tr>
+            </Table.Tr>
           </Table.Thead>
-
           <Table.Tbody>
             {paginatedData.map((row, i) => (
-              <Table.Tr key={row.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+              <Table.Tr
+                key={row.id}
+                className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}
+              >
                 <Table.Td>
                   <Checkbox
                     checked={checkedRows.includes(row.id)}
                     onChange={() => toggleCheck(row.id)}
                   />
                 </Table.Td>
-                <Table.Td>{row.nama}</Table.Td>
-                <Table.Td>{row.no_pol}</Table.Td>
-                <Table.Td>{row.mobil}</Table.Td>
+                <Table.Td>{row.nama || "-"}</Table.Td>
+                <Table.Td>{row.no_pol || "-"}</Table.Td>
+                <Table.Td>{row.mobil || "-"}</Table.Td>
                 <Table.Td>
                   <Badge
-                    color={row.kategori == "PREMIUM" ? "red" : "gray"}
+                    color={row.kategori === "PREMIUM" ? "red" : "gray"}
                     fullWidth
                     size="md"
                   >
-                    {row.kategori}
+                    {row.kategori || "-"}
                   </Badge>
                 </Table.Td>
-                <Table.Td>{row.no_kep}</Table.Td>
+                <Table.Td>{row.no_kep || "-"}</Table.Td>
                 <Table.Td>
                   {row.exp_kep
                     ? dayjs(row.exp_kep).locale("id").format("D MMMM YYYY")
                     : "-"}
                 </Table.Td>
-                <Table.Td>{row.no_hp}</Table.Td>
-                <Table.Td>{row.no_darurat}</Table.Td>
-
-                {/* Password column dengan modal konfirmasi */}
+                <Table.Td>{row.no_hp || "-"}</Table.Td>
+                <Table.Td>{row.no_darurat || "-"}</Table.Td>
                 <Table.Td>
                   <Group gap="xs" justify="center">
                     <Text>
@@ -286,7 +270,7 @@ export default function TableView({ data }) {
                     <ActionIcon
                       variant="subtle"
                       color="gray"
-                      onClick={() => handleOpenAdminModal(row.id)} 
+                      onClick={() => handleOpenAdminModal(row.id)}
                     >
                       <Icon
                         icon={
@@ -299,7 +283,6 @@ export default function TableView({ data }) {
                     </ActionIcon>
                   </Group>
                 </Table.Td>
-
                 <Table.Td className="text-center">
                   <Group justify="center" gap="xs">
                     <Button
@@ -325,7 +308,10 @@ export default function TableView({ data }) {
                       color="blue"
                       radius="xl"
                       size="xs"
-                      onClick={() => handleShowDetail(row)}
+                      onClick={() => {
+                        setEditData(row);
+                        setOpened(true);
+                      }}
                     >
                       <Icon icon="mdi:open-in-new" width={18} />
                     </Button>
@@ -336,6 +322,7 @@ export default function TableView({ data }) {
           </Table.Tbody>
         </Table>
 
+        {/* 🔹 Pagination */}
         {totalPages > 1 && (
           <Group justify="center" className="p-4 border-t border-gray-100">
             <Pagination
@@ -348,85 +335,44 @@ export default function TableView({ data }) {
             />
           </Group>
         )}
-
-        {/* Modal Tambah/Edit Driver */}
-        <DriverModal
-          opened={opened}
-          onClose={() => setOpened(false)}
-          data={editData}
-          onSubmit={handleSubmit}
-          type="form" 
-        />
-
-        {/* Modal Preview Foto Driver */}
-        <Modal
-          opened={!!ssPreview}
-          onClose={() => setSsPreview(null)}
-          title="Foto Driver"
-          size="md"
-          centered
-          radius="lg"
-        >
-          {ssPreview ? (
-            <Image src={ssPreview} alt="Foto Driver" width="100%" radius="md" />
-          ) : (
-            <Text c="dimmed" ta="center">
-              Tidak ada gambar untuk ditampilkan.
-            </Text>
-          )}
-        </Modal>
       </Box>
-      
-      {/* Modal Konfirmasi Password Admin */}
-      {driverToConfirm && (
+
+      {/* Modal Tambah/Edit Driver */}
+      <DriverModal
+        opened={opened}
+        onClose={() => setOpened(false)}
+        data={editData}
+        onSubmit={handleModalSubmit}
+        type="form"
+      />
+
+      {/* Modal Foto Profil */}
+      <Modal
+        opened={!!ssPreview}
+        onClose={() => setSsPreview(null)}
+        title="Foto Driver"
+        size="md"
+        centered
+        radius="lg"
+      >
+        {ssPreview ? (
+          <Image src={ssPreview} alt="Foto Driver" width="100%" radius="md" />
+        ) : (
+          <Text c="dimmed" ta="center">
+            Tidak ada gambar untuk ditampilkan.
+          </Text>
+        )}
+      </Modal>
+
+      {/* Modal Konfirmasi Admin */}
+      {driverIdToShowPassword && (
         <DriverModal
           opened={adminModalOpened}
           onClose={() => setAdminModalOpened(false)}
-          onConfirm={handleAdminConfirm} 
+          onConfirm={handleAdminConfirm}
           driverId={driverIdToShowPassword}
-          type="confirm_admin" 
+          type="confirm_admin"
         />
-      )}
-
-      {/* Detail Panel */}
-      {selectedRow && (
-        <Box className="p-4 border-t border-gray-200 bg-gray-50 flex flex-wrap items-center justify-between sticky bottom-0 w-full">
-          <Text size="sm" className="text-gray-700">
-            Data Driver Terpilih dengan Plat Nomor:{" "}
-            <span className="font-semibold">{selectedRow.no_pol}</span>
-          </Text>
-
-          <Group gap="xs">
-            <Button
-              size="xs"
-              color="blue"
-              leftSection={<Icon icon="mdi:pencil" width={16} />}
-              onClick={() => {
-                setEditData(selectedRow);
-                setOpened(true);
-              }}
-            >
-              Edit
-            </Button>
-            <Button
-              size="xs"
-              color="red"
-              leftSection={<Icon icon="mdi:trash-can" width={16} />}
-              onClick={() => openDeleteConfirm(selectedRow.id)}
-            >
-              Hapus
-            </Button>
-            <Button
-              size="xs"
-              color="gray"
-              variant="default"
-              leftSection={<Icon icon="mdi:close" width={16} />}
-              onClick={() => setSelectedRow(null)}
-            >
-              Tutup
-            </Button>
-          </Group>
-        </Box>
       )}
     </div>
   );

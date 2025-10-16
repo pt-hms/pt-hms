@@ -38,3 +38,4 @@ export async function deleteSIJ(id) {
     const res = await axiosInstance.delete(`/sij/${id}`);
     return res.data;
 }
+

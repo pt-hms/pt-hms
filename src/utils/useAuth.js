@@ -47,21 +47,58 @@ export function useAuth(role = null) {
         const token = localStorage.getItem("token");
         const userData = getUser();
 
-        // Jika tidak ada token → wajib login
         if (!token || !userData) {
             router.replace("/");
             return;
         }
 
-        // Jika route punya role spesifik (misal admin)
-        if (role && userData.role !== role) {
-            router.replace(userData.role === "admin" ? "/admin" : "/driver");
-            return;
-        }
+        const checkBuktiTF = async () => {
+            try {
+                // Ambil status bukti_tf dari API /tf
+                const res = await axiosInstance.get(`/tf`);
+                const buktiTF = res.data.tf; // sesuaikan dengan response API\
+                console.log(buktiTF);
 
-        setUser(userData);
-        setLoading(false);
+                // Jika driver belum upload bukti_tf → paksa ke /sij
+                if (userData.role === "driver" && !buktiTF) {
+                    router.replace("/sij");
+                    return;
+                }
+
+                // Cek role jika ada role spesifik
+                if (role && userData.role !== role) {
+                    router.replace(userData.role === "admin" ? "/admin" : "/driver");
+                    return;
+                }
+
+                setUser(userData);
+                setLoading(false);
+            } catch (err) {
+                console.error("Failed to check bukti_tf:", err);
+                router.replace("/"); // fallback redirect
+            }
+        };
+
+        checkBuktiTF();
     }, [router, role]);
 
     return { user, loading };
+
+}
+
+export function useGuest() {
+    const router = useRouter();
+
+    useEffect(() => {
+        const user = getUser();
+
+        if (user) {
+            // Kalau sudah login → arahkan ke dashboard sesuai role
+            if (user.role === "driver") {
+                router.replace("/driver");
+            } else if (user.role === "admin") {
+                router.replace("/admin");
+            }
+        }
+    }, [router]);
 }

@@ -7,8 +7,8 @@ export async function uploadRitase(ss_order) {
     return res.data;
 }
 
-export async function getDriverRitase(id) {
-    const res = await axiosInstance.get(`/ritase/${id}`);
+export async function getMyRitase() {
+    const res = await axiosInstance.get(`/ritase-saya`);
     return res.data;
 }
 

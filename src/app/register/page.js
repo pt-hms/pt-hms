@@ -16,7 +16,7 @@ import { DateInput } from "@mantine/dates";
 import "dayjs/locale/id";
 import { Icon } from "@iconify/react";
 import { notifications } from "@mantine/notifications";
-import { registerUser } from "@/utils/useAuth";
+import { registerUser, useGuest } from "@/utils/useAuth";
 import useRouteLoading from "@/utils/useRouteLoading";
 
 export default function Page() {
@@ -28,6 +28,8 @@ export default function Page() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [mounted, setMounted] = useState(false);
+
+    useGuest();
 
     useEffect(() => {
         setMounted(true); // menandai komponen sudah di client

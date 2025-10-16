@@ -5,11 +5,14 @@ import { notifications } from "@mantine/notifications";
 import { Loader } from "@mantine/core";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
+import { uploadTF } from "@/utils/api/transfer";
+import { useAuth } from "@/utils/useAuth";
 
 export default function Page() {
     const [preview, setPreview] = useState(null);
     const [file, setFile] = useState(null);
     const [isUploading, setIsUploading] = useState(false);
+    const { user, loading } = useAuth("driver");
 
     const handleDrop = (files) => {
         const selectedFile = files[0];
@@ -21,31 +24,48 @@ export default function Page() {
         }
     };
 
-    const handleUpload = () => {
-        if (file == null) {
+    const handleUpload = async () => {
+        if (!file) {
             notifications.show({
                 title: "Gagal",
-                message: "Silakan pilih file terlebih dahulu.",
+                message: "Silakan pilih file terlebih dahulu!",
                 color: "red",
             });
             return;
         }
 
-        setIsUploading(true); // Mulai loading
-        // Simulasi proses upload
-        setTimeout(() => {
+        setIsUploading(true);
+
+        try {
+            // Buat FormData
+            const formData = new FormData();
+            formData.append("bukti_tf", file);
+            console.log(formData.get("bukti_tf"));
+
+            // Panggil API upload
+            await uploadTF(formData);
+
             notifications.show({
                 title: "Berhasil",
-                message: `Bukti transfer "${file.name}" berhasil diunggah!`,
+                message: `File "${file.name}" berhasil diunggah!`,
                 color: "green",
             });
 
+            // Reset state
             setFile(null);
             setPreview(null);
-            setIsUploading(false); // Hentikan loading
-        }, 1500); // Simulasi waktu upload 1.5 detik
+        } catch (error) {
+            console.error(error);
+            notifications.show({
+                title: "Gagal",
+                message: "Terjadi kesalahan saat mengunggah file.",
+                color: "red",
+            });
+        } finally {
+            setIsUploading(false);
+        }
     };
-    
+
     return (
         // Wrapper utama diubah:
         // 1. Dibuat flex container (flex)
@@ -53,8 +73,8 @@ export default function Page() {
         // 3. Konten diletakkan di tengah vertikal (justify-center)
         // 4. pb-[124px] dihilangkan, diganti dengan padding vertikal (py-8)
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 py-8">
-                
-            
+
+
             {/* === AREA UPLOAD (Dropzone) === */}
             <Dropzone
                 accept={IMAGE_MIME_TYPE}
@@ -70,19 +90,18 @@ export default function Page() {
                 className="w-[90%] h-[50vh] max-w-sm bg-white rounded-3xl border-4 border-[#e10b16] 
                            flex flex-col items-center justify-center cursor-pointer shadow-lg hover:bg-red-50 
                            transition-all duration-300 ease-in-out p-4 relative overflow-hidden"
-                onDragEnter={(event) => event.currentTarget.classList.add('scale-[1.02]', 'shadow-2xl')} 
-                onDragLeave={(event) => event.currentTarget.classList.remove('scale-[1.02]', 'shadow-2xl')}
             >
                 {preview ? (
                     <Image
                         src={preview}
                         alt="Preview Bukti Transfer"
                         className="max-w-full max-h-full object-contain rounded-2xl animate-fade-in"
+                        fill={true}
                     />
                 ) : (
                     <div className="flex flex-col items-center text-center p-4">
                         <Icon icon="solar:upload-minimalistic-bold" width={80} height={80} className="text-[#e10b16] mb-4 animate-bounce-slow" />
-                        
+
                         <p className="text-gray-700 font-extrabold text-2xl tracking-wide mb-2">
                             UNGGAH BUKTI TRANSFER KEHADIRAN
                         </p>
@@ -95,7 +114,7 @@ export default function Page() {
                     </div>
                 )}
             </Dropzone>
-            
+
             {/* === TOMBOL AKSI === */}
             {file &&
                 <div className="w-[90%] mx-auto h-fit py-5 flex flex-col items-center gap-4 max-w-sm mt-8">

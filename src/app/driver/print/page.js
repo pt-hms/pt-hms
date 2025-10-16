@@ -1,20 +1,45 @@
 "use client";
 
+import { getProfile } from "@/utils/api/profil";
 import { getLastSIJ } from "@/utils/api/sij";
+import { getTF } from "@/utils/api/transfer";
+import axiosInstance from "@/utils/axios";
 import { TextInput, Button, Paper, Container, Title, Text, Center, Loader } from "@mantine/core";
 import { useEffect, useState } from "react";
+import dayjs from "dayjs";
+import "dayjs/locale/id";
+
+dayjs.locale("id"); // pakai bahasa Indonesia
 
 export default function print() {
     const [data, setData] = useState([]);
+    const [profile, setProfile] = useState(null);
+    const [buktiTF, setBuktiTF] = useState(null);
     const [loading, setLoading] = useState(false)
+
+    const now = dayjs();
+    const formatted = now.format("dddd DD/MM/YY HH:mm:ss");
+
+    console.log(formatted);
+    // Contoh output: "Jumat 10/10/25 22:40:24"
+
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const data = await getLastSIJ();
-                setData(data);
+                // 1. Ambil nomor SIJ terakhir
+                const sijData = await getLastSIJ();
+                setData(sijData);
+
+                // 2. Ambil profile driver
+                const profileRes = await getProfile(); // endpoint profile sesuai backend
+                setProfile(profileRes.driver);
+
+                // 3. Ambil bukti_tf
+                const tfRes = await getTF();
+                setBuktiTF(tfRes.tf); // tf.id nanti ada di sini
             } catch (err) {
-                console.error("Gagal ambil data driver:", err);
+                console.error("Gagal ambil data:", err);
             } finally {
                 setLoading(false);
             }
@@ -22,6 +47,66 @@ export default function print() {
 
         fetchData();
     }, []);
+
+    console.log(data, profile, buktiTF);
+
+
+    const handleConnectAndPrint = async () => {
+        const statusElement = document.getElementById("status");
+
+        if (!PrintPlugin) {
+            statusElement.style.color = "#333";
+            statusElement.textContent = "Error: Printing library not loaded.";
+            return;
+        }
+
+        let printer = new PrintPlugin("58mm");
+
+        printer.connectToPrint({
+            onReady: async (print) => {
+                try {
+                    statusElement.style.color = "#e10b16";
+                    statusElement.textContent = "Printing...";
+
+                    // Cetak text
+                    await print.writeText("Surat Ijin Jalan", { align: "center", bold: true });
+                    await print.writeText("PT HMS (Helmi Mandiri Sukses)", { align: "center", bold: true });
+                    await print.writeText("Grabcar Airport", { align: "center" });
+                    await print.writeText("Bandara Soekarno - Hatta", { align: "center" });
+                    await print.writeText(`Nama: ${profile?.nama}`, { align: "center" });
+                    await print.writeText(`No Pol: ${profile?.no_pol}`, { align: "center" });
+                    await print.writeDashLine();
+                    await print.writeText(`${formatted}`, { align: "center" });
+                    await print.writeText(`${data.no_sij}`, { align: "center", bold: true, size: "double" });
+                    await print.writeDashLine();
+                    await print.writeText("DISIPLIN & PATUHI SOP", { align: "center" });
+                    await print.writeText("Terima Kasih", { align: "center" });
+
+                    // POST ke /sij-print dengan tf.id
+                    await axiosInstance.post("/sij-print", {
+                        tf_id: buktiTF?.id,
+                    }, {
+                        headers: {
+                            "Content-Type": "application/json",
+                        }
+                    },);
+
+                    statusElement.style.color = "#e10b16";
+                    statusElement.textContent = "Print successful!";
+                } catch (error) {
+                    console.error("Printing failed:", error);
+                    statusElement.style.color = "#333";
+                    statusElement.textContent = `Printing failed: ${error.message}`;
+                }
+            },
+            onFailed: (message) => {
+                console.error("Printer connection failed:", message);
+                statusElement.style.color = "#333";
+                statusElement.textContent = `Failed: ${message}`;
+            },
+        });
+    };
+
 
     if (loading) {
         return (
@@ -32,63 +117,6 @@ export default function print() {
     }
 
     console.log(data);
-
-    const handleConnectAndPrint = () => {
-        // --- Perubahan Warna Status ---
-        // Mendapatkan elemen status
-        const statusElement = document.getElementById("status");
-
-        if (typeof PrintPlugin === "undefined") {
-            console.error("PrintPlugin is not loaded yet.");
-            // Teks status diubah menjadi abu-abu
-            statusElement.style.color = "#333333";
-            statusElement.textContent = "Error: Printing library not loaded.";
-            return;
-        }
-
-        let printer = new PrintPlugin("58mm");
-
-        printer.connectToPrint({
-            onReady: async (print) => {
-                try {
-                    // Teks status diubah menjadi merah saat memproses
-                    statusElement.style.color = "#e10b16";
-                    statusElement.textContent = "Printing...";
-
-                    await print.writeText("Surat Ijin Jalan", { align: "center", bold: true });
-                    await print.writeText("PT HMS (Helmi Mandiri Sukses)", { align: "center", bold: true });
-                    await print.writeText("Grabcar Airport", { align: "center" });
-                    await print.writeText("Bandara Soekarno - Hatta", { align: "center" });
-                    await print.writeText("Nama: Aldop", { align: "center" }); // nama diambil dari data driver
-                    await print.writeText("No Pol: B 1720 EDT", { align: "center" }); // no_pol diambil dari data driver
-                    await print.writeDashLine();
-                    await print.writeText("Jumat 10/10/25 22:40:24", { align: "center" }); // tanggal diambil dari tanggal hari ini
-                    await print.writeText(`${data.no_sij}`, { align: "center", bold: true, size: "double" });
-                    await print.writeDashLine();
-                    await print.writeText("DISIPLIN & PATUHI SOP", { align: "center" });
-                    await print.writeText("Terima Kasih", { align: "center" });
-                    await print.writeLineBreak();
-                    await print.writeLineBreak();
-                    await print.writeLineBreak();
-
-                    // Teks status diubah menjadi merah saat sukses
-                    statusElement.style.color = "#e10b16";
-                    statusElement.textContent = "Print successful!";
-                } catch (error) {
-                    console.error("Printing failed:", error);
-                    // Teks status diubah menjadi abu-abu/hitam saat gagal
-                    statusElement.style.color = "#333333";
-                    statusElement.textContent = `Printing failed: ${error.message}`;
-                }
-            },
-            onFailed: (message) => {
-                console.log(message);
-                // Teks status diubah menjadi abu-abu/hitam saat gagal
-                statusElement.style.color = "#333333";
-                statusElement.textContent = `Failed: ${message}`;
-            },
-        });
-    };
 
     return (
         <Container size="xs" style={{ minHeight: "100vh", display: "flex", alignItems: "center" }}>

@@ -8,12 +8,13 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { notifications } from "@mantine/notifications";
-import { getUser, loginUser } from "@/utils/useAuth";
+import { getUser, loginUser, useGuest } from "@/utils/useAuth";
 import useRouteLoading from "@/utils/useRouteLoading";
 
 export default function page() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  useGuest();
 
   useRouteLoading(() => {
     const user = getUser();

@@ -55,13 +55,18 @@ export default function print() {
                     statusElement.style.color = "#e10b16";
                     statusElement.textContent = "Printing...";
 
-                    await print.writeText("PT HMS", { align: "center", bold: true });
-                    await print.writeText("Bandara Soekarno-Hatta", { align: "center" });
+                    await print.writeText("Surat Ijin Jalan", { align: "center", bold: true });
+                    await print.writeText("PT HMS (Helmi Mandiri Sukses)", { align: "center", bold: true });
+                    await print.writeText("Grabcar Airport", { align: "center" });
+                    await print.writeText("Bandara Soekarno - Hatta", { align: "center" });
+                    await print.writeText("Nama: Aldop", { align: "center" }); // nama diambil dari data driver
+                    await print.writeText("No Pol: B 1720 EDT", { align: "center" }); // no_pol diambil dari data driver
                     await print.writeDashLine();
-                    await print.writeText("Jumat 10/10/25 22:40:24", { align: "center" });
+                    await print.writeText("Jumat 10/10/25 22:40:24", { align: "center" }); // tanggal diambil dari tanggal hari ini
                     await print.writeText(`${data.no_sij}`, { align: "center", bold: true, size: "double" });
                     await print.writeDashLine();
-                    await print.writeText("Berikut nomor antrean anda", { align: "center" });
+                    await print.writeText("DISIPLIN & PATUHI SOP", { align: "center" });
+                    await print.writeText("Terima Kasih", { align: "center" });
                     await print.writeLineBreak();
                     await print.writeLineBreak();
                     await print.writeLineBreak();

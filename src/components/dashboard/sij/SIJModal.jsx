@@ -59,6 +59,9 @@ export default function SIJModal({ opened, onClose, data, plat, onSubmit }) {
     }
   }, [data]);
 
+  console.log(form);
+  
+
   const handleSubmit = (values) => {
     try {
       const createdAt = new Date(values.datetime).toISOString();

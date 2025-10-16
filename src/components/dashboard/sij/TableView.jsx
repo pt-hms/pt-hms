@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Table,
   Checkbox,
@@ -14,15 +13,18 @@ import {
   Modal,
   Image,
   Pagination,
-  Select,
 } from "@mantine/core";
-import { DatePickerInput } from "@mantine/dates"; // ⬅ Tambahan
+import { DatePickerInput } from "@mantine/dates";
 import { Icon } from "@iconify/react";
 import RitaseModal from "./SIJModal";
 import { modals } from "@mantine/modals";
 import dayjs from "dayjs";
 import "dayjs/locale/id";
 import { exportToExcel } from "@/components/Export";
+import { deleteSIJ } from "@/utils/api/sij";
+import {notifications} from "@mantine/notifications"
+
+dayjs.locale("id");
 
 export default function TableView({ data }) {
   const [selectedCollapse, setSelectedCollapse] = useState(null);
@@ -33,65 +35,56 @@ export default function TableView({ data }) {
   const [ssPreview, setSsPreview] = useState(null);
   const [page, setPage] = useState(1);
   const [filteredData, setFilteredData] = useState(data);
-  const [timeFilter, setTimeFilter] = useState(null);
-
-  // filter tanggal
   const [dateFilter, setDateFilter] = useState(null);
 
   const itemsPerPage = 10;
 
-  // format tanggal lokal
+  // Format tanggal
   function localDate(date) {
     return dayjs(date).locale("id").format("HH:mm - D MMMM YYYY");
   }
 
-  // Filter pencarian + filter tanggal
+  // Filter data (pencarian + tanggal)
   useEffect(() => {
     let newData = [...data];
 
-    // filter pencarian (nama atau no_pol)
     if (search.trim()) {
-      newData = newData.filter((d) =>
-        d.no_pol.toLowerCase().includes(search.toLowerCase()) ||
-        d.nama.toLowerCase().includes(search.toLowerCase())
+      newData = newData.filter(
+        (d) =>
+          d.no_pol.toLowerCase().includes(search.toLowerCase()) ||
+          d.nama.toLowerCase().includes(search.toLowerCase())
       );
     }
 
-    // filter tanggal (cek di semua sij)
     if (dateFilter) {
       const selectedDate = dayjs(dateFilter).startOf("day");
-      newData = newData.map((d) => ({
-        ...d,
-        sij: d.sij?.filter((s) =>
-          dayjs(s.createdAt).isSame(selectedDate, "day")
-        ),
-      })).filter((d) => d.sij && d.sij.length > 0);
+      newData = newData
+        .map((d) => ({
+          ...d,
+          sij: d.sij?.filter((s) =>
+            dayjs(s.createdAt).isSame(selectedDate, "day")
+          ),
+        }))
+        .filter((d) => d.sij && d.sij.length > 0);
     }
 
     setFilteredData(newData);
     setPage(1);
   }, [search, data, dateFilter]);
 
-  // pagination
+  // Pagination
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = filteredData.slice(
     (page - 1) * itemsPerPage,
     page * itemsPerPage
   );
 
-  // checkbox handler
-  const toggleCheck = (id) => {
-    setCheckedRows((prev) =>
-      prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]
-    );
-  };
-
-  // collapse toggle
+  // Collapse toggle
   const toggleCollapse = (id) => {
     setSelectedCollapse(selectedCollapse === id ? null : id);
   };
 
-  // konfirmasi hapus
+  // Konfirmasi hapus
   const openDeleteConfirm = (ids) => {
     modals.openConfirmModal({
       title: "Konfirmasi Hapus",
@@ -111,30 +104,48 @@ export default function TableView({ data }) {
     });
   };
 
-  const handleDelete = (ids) => {
-    if (Array.isArray(ids)) {
-      console.log("Menghapus beberapa ID:", ids);
-      setCheckedRows([]);
-    } else {
-      console.log("Menghapus ID:", ids);
-    }
+ const handleDelete = async (ids) => {
+  try {
+    if (!ids || (Array.isArray(ids) && ids.length === 0)) return;
+    const idArray = Array.isArray(ids) ? ids : [ids];
+
+    const res = await deleteSIJ(idArray);
+    console.log("Berhasil menghapus di server:", res);
+
+    // Hanya update UI jika server berhasil
+    setFilteredData((prev) =>
+      prev.map((d) => ({
+        ...d,
+        sij: d.sij?.filter((s) => !idArray.includes(s.id)),
+      }))
+    );
+    notifications.show({
+          title: "Berhasil",
+          message: res.message || "Berhasil menghapus data",
+          color: "green",
+        });
+    setCheckedRows([]);
+  } catch (error) {
+        console.error(error);
+        notifications.show({
+          title: "Gagal",
+          message: error.response?.data?.message || "Terjadi Kesalahan Saat Mengunggah Gambar",
+          color: "red",
+        });
+      } finally {
     modals.closeAll();
-  };
-
-  const platNo = data.map((item) => ({
-    value: item.no_pol,
-    label: item.no_pol,
-  }));
-
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
+  }
+};
 
   const headers = {
     nama: "NAMA DRIVER",
     no_pol: "PLAT NOMOR",
     kategori: "JENIS",
   };
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
 
   return (
     <div className="w-full relative">
@@ -148,7 +159,6 @@ export default function TableView({ data }) {
           className="w-full sm:w-1/3"
         />
 
-        {/*filter tanggal */}
         <DatePickerInput
           placeholder="Pilih tanggal"
           locale="id"
@@ -168,68 +178,31 @@ export default function TableView({ data }) {
           >
             Unduh
           </Button>
-          <Button
-            color="orange"
-            leftSection={<Icon icon="mdi:plus" />}
-            onClick={() => {
-              setEditData(null);
-              setOpened(true);
-            }}
-          >
-            Tambah
-          </Button>
         </Group>
       </Group>
 
+      {/* Jika ada checkbox terpilih */}
+      {checkedRows.length > 0 && (
+        <Box className="flex items-center justify-between bg-red-50 border-b border-red-200 px-4 py-2 rounded-t-xl">
+          <Text size="sm" className="text-red-700 font-medium">
+            {checkedRows.length} SIJ terpilih
+          </Text>
+          <Button
+            color="red"
+            size="xs"
+            leftSection={<Icon icon="mdi:trash-can" width={16} />}
+            onClick={() => openDeleteConfirm(checkedRows)}
+          >
+            Hapus Data Terpilih
+          </Button>
+        </Box>
+      )}
+
       {/* Table utama */}
       <Box className="w-full bg-white shadow-sm rounded-xl overflow-x-auto border border-gray-100">
-        {checkedRows.length > 0 && (
-          <Box className="flex items-center justify-between bg-red-50 border-b border-red-200 px-4 py-2">
-            <Text size="sm" className="text-red-700 font-medium">
-              {checkedRows.length} data terpilih
-            </Text>
-            <Button
-              color="red"
-              size="xs"
-              leftSection={<Icon icon="mdi:trash-can" width={16} />}
-              onClick={() => openDeleteConfirm(checkedRows)}
-            >
-              Hapus Data Terpilih
-            </Button>
-          </Box>
-        )}
-
         <Table striped highlightOnHover withColumnBorders>
           <Table.Thead className="bg-gray-50">
             <Table.Tr>
-              <Table.Th>
-                <Checkbox
-                  checked={
-                    paginatedData.length > 0 &&
-                    paginatedData.every((row) => checkedRows.includes(row.id))
-                  }
-                  indeterminate={
-                    paginatedData.some((row) => checkedRows.includes(row.id)) &&
-                    !paginatedData.every((row) => checkedRows.includes(row.id))
-                  }
-                  onChange={(e) => {
-                    if (e.currentTarget.checked) {
-                      setCheckedRows((prev) => [
-                        ...new Set([
-                          ...prev,
-                          ...paginatedData.map((d) => d.id),
-                        ]),
-                      ]);
-                    } else {
-                      setCheckedRows((prev) =>
-                        prev.filter(
-                          (id) => !paginatedData.map((d) => d.id).includes(id)
-                        )
-                      );
-                    }
-                  }}
-                />
-              </Table.Th>
               <Table.Th>NAMA</Table.Th>
               <Table.Th>PLAT NOMOR</Table.Th>
               <Table.Th>JENIS</Table.Th>
@@ -244,12 +217,6 @@ export default function TableView({ data }) {
                 <React.Fragment key={row.id || i}>
                   {/* Baris utama */}
                   <Table.Tr className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                    <Table.Td>
-                      <Checkbox
-                        checked={checkedRows.includes(row.id)}
-                        onChange={() => toggleCheck(row.id)}
-                      />
-                    </Table.Td>
                     <Table.Td>{row.nama}</Table.Td>
                     <Table.Td>{row.no_pol}</Table.Td>
                     <Table.Td>
@@ -259,7 +226,8 @@ export default function TableView({ data }) {
                         variant="filled"
                         styles={{
                           root: {
-                            backgroundColor: row.kategori === "PREMIUM" ? "#e10b16" : "#9ca3af",
+                            backgroundColor:
+                              row.kategori === "PREMIUM" ? "#e10b16" : "#9ca3af",
                             color: "white",
                           },
                         }}
@@ -302,10 +270,10 @@ export default function TableView({ data }) {
                     </Table.Td>
                   </Table.Tr>
 
-                  {/* Baris collapse */}
+                  {/* Collapse SIJ */}
                   {selectedCollapse === row.id && (
                     <Table.Tr key={`collapse-${row.id}`}>
-                      <Table.Td colSpan={6} className="bg-gray-50">
+                      <Table.Td colSpan={5} className="bg-gray-50">
                         <Box className="p-3 rounded-lg border border-gray-200">
                           <Text fw={600} mb={8}>
                             Daftar SIJ
@@ -318,46 +286,77 @@ export default function TableView({ data }) {
                           >
                             <Table.Thead>
                               <Table.Tr>
+                                <Table.Th>
+                                  <Checkbox
+                                    checked={
+                                      row.sij?.length > 0 &&
+                                      row.sij.every((s) =>
+                                        checkedRows.includes(s.id)
+                                      )
+                                    }
+                                    indeterminate={
+                                      row.sij?.some((s) =>
+                                        checkedRows.includes(s.id)
+                                      ) &&
+                                      !row.sij.every((s) =>
+                                        checkedRows.includes(s.id)
+                                      )
+                                    }
+                                    onChange={(e) => {
+                                      if (e.currentTarget.checked) {
+                                        setCheckedRows((prev) => [
+                                          ...new Set([
+                                            ...prev,
+                                            ...row.sij.map((s) => s.id),
+                                          ]),
+                                        ]);
+                                      } else {
+                                        setCheckedRows((prev) =>
+                                          prev.filter(
+                                            (id) =>
+                                              !row.sij
+                                                .map((s) => s.id)
+                                                .includes(id)
+                                          )
+                                        );
+                                      }
+                                    }}
+                                  />
+                                </Table.Th>
                                 <Table.Th>NO. SIJ</Table.Th>
                                 <Table.Th>WAKTU</Table.Th>
                                 <Table.Th className="text-center">AKSI</Table.Th>
                               </Table.Tr>
                             </Table.Thead>
+
                             <Table.Tbody>
                               {row.sij?.map((s) => (
                                 <Table.Tr key={s.id}>
+                                  <Table.Td>
+                                    <Checkbox
+                                      checked={checkedRows.includes(s.id)}
+                                      onChange={() =>
+                                        setCheckedRows((prev) =>
+                                          prev.includes(s.id)
+                                            ? prev.filter((v) => v !== s.id)
+                                            : [...prev, s.id]
+                                        )
+                                      }
+                                    />
+                                  </Table.Td>
                                   <Table.Td>{s.no_sij}</Table.Td>
                                   <Table.Td>{localDate(s.createdAt)}</Table.Td>
                                   <Table.Td className="text-center">
-                                    <Group justify="center" gap="xs">
-                                      <Button
-                                        size="xs"
-                                        color="blue"
-                                        leftSection={<Icon icon="mdi:pencil" width={16} />}
-                                        onClick={() => {
-                                          setEditData({
-                                            id: row.id,
-                                            no_pol: row.no_pol,
-                                            createdAt: s.createdAt,
-                                            bukti_tf: s.bukti_tf,
-                                            no_sij: s.no_sij,
-                                          });
-                                          setOpened(true);
-                                        }}
-                                      >
-                                        Edit
-                                      </Button>
-                                      <Button
-                                        size="xs"
-                                        color="red"
-                                        leftSection={
-                                          <Icon icon="mdi:trash-can" width={16} />
-                                        }
-                                        onClick={() => openDeleteConfirm(s.id)}
-                                      >
-                                        Hapus
-                                      </Button>
-                                    </Group>
+                                    <Button
+                                      size="xs"
+                                      color="red"
+                                      leftSection={
+                                        <Icon icon="mdi:trash-can" width={16} />
+                                      }
+                                      onClick={() => openDeleteConfirm(s.id)}
+                                    >
+                                      Hapus
+                                    </Button>
                                   </Table.Td>
                                 </Table.Tr>
                               ))}
@@ -371,7 +370,7 @@ export default function TableView({ data }) {
               ))
             ) : (
               <Table.Tr>
-                <Table.Td colSpan={6} className="text-center text-gray-500 py-6">
+                <Table.Td colSpan={5} className="text-center text-gray-500 py-6">
                   Tidak ada data untuk tanggal ini
                 </Table.Td>
               </Table.Tr>
@@ -398,7 +397,10 @@ export default function TableView({ data }) {
           opened={opened}
           onClose={() => setOpened(false)}
           data={editData}
-          plat={platNo}
+          plat={data.map((item) => ({
+            value: item.no_pol,
+            label: item.no_pol,
+          }))}
         />
 
         {/* Modal Bukti TF */}

@@ -33,9 +33,11 @@ export async function updateSIJ(id, formData) {
     return res.data;
 }
 
-// Hapus SIJ
 export async function deleteSIJ(id) {
-    const res = await axiosInstance.delete(`/sij/${id}`);
+    const res = await axiosInstance.delete("/sij", {
+        data: { "id": id },
+        headers: { "Content-Type": "application/json" },
+    });
     return res.data;
 }
 

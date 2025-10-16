@@ -80,7 +80,11 @@ export default function print() {
                     await print.writeText(`${data.no_sij}`, { align: "center", bold: true, size: "double" });
                     await print.writeDashLine();
                     await print.writeText("DISIPLIN & PATUHI SOP", { align: "center" });
+                    await print.writeLineBreak();
                     await print.writeText("Terima Kasih", { align: "center" });
+                    await print.writeLineBreak();
+                    await print.writeLineBreak();
+                    await print.writeLineBreak();
 
                     // POST ke /sij-print dengan tf.id
                     await axiosInstance.post("/sij-print", {
@@ -91,8 +95,11 @@ export default function print() {
                         }
                     },);
 
+
                     statusElement.style.color = "#e10b16";
                     statusElement.textContent = "Print successful!";
+                    const newSij = await getLastSIJ();
+                    setData(newSij);
                 } catch (error) {
                     console.error("Printing failed:", error);
                     statusElement.style.color = "#333";

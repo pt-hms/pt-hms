@@ -68,6 +68,10 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
         formData.append("no_pol", values.no_pol);
         formData.append("pickup_point", values.pickup_point);
         formData.append("tujuan", values.tujuan);
+        if (values.tanggal_jam) {
+          const isoDate = dayjs(values.tanggal_jam).toISOString();
+          formData.append("tanggal_jam", isoDate);
+        }
         await updateRitase(data.id, formData);
       }
       // Jika sedang TAMBAH → kirim semua field
@@ -168,7 +172,6 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
             )}
 
             {/* Field tanggal hanya muncul saat tambah */}
-            {!data && (
               <DateTimePicker
                 label="Tanggal & Waktu"
                 placeholder="Pilih tanggal dan jam"
@@ -176,7 +179,6 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
                 locale="id"
                 {...form.getInputProps("tanggal_jam")}
               />
-            )}
           </div>
 
           {/* Dropzone + Preview */}

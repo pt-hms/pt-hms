@@ -35,17 +35,17 @@ export default function Page() {
 
         res.report.forEach((d) => {
           report += `*Jam ${d.jam}*\n`;
-          report += `*GCA Rides :* ${d.rides}\n`;
-          report += `*GCA Daily Active Driver :* ${d.dailyActiveDriver}\n`;
-          report += `*GCA Driver Standby :* \n\n`;
+          report += `*GCA* Rides : ${d.rides}\n`;
+          report += `*GCA* Daily Active Driver : ${d.dailyActiveDriver}\n`;
+          report += `*GCA* Driver Standby :* \n\n`;
 
           totalRides += d.rides || 0;
           totalDAD += d.dailyActiveDriver || 0;
         });
 
-        report += `*TOTAL DAD :* ${totalDAD}\n`;
-        report += `*TOTAL RIDES :* ${totalRides}\n`;
-        report += `*STANDBY POOL :* \n`;
+        report += `*TOTAL DAD : ${totalDAD}\n*`;
+        report += `*TOTAL RIDES : ${totalRides}\n*`;
+        report += `*STANDBY POOL : \n*`;
 
         setPreviewText(report);
       } else {

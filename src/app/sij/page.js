@@ -6,7 +6,7 @@ import { Button, Loader } from "@mantine/core";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { uploadTF } from "@/utils/api/transfer";
-import { useAuth } from "@/utils/useAuth";
+import { logoutUser, useAuth } from "@/utils/useAuth";
 import { useRouter } from "next/navigation";
 
 export default function Page() {

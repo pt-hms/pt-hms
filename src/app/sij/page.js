@@ -113,7 +113,7 @@ export default function Page() {
                     <div className="flex flex-col items-center text-center p-4">
                         <Icon icon="solar:upload-minimalistic-bold" width={80} height={80} className="text-[#e10b16] mb-4 animate-bounce-slow" />
 
-                        <p className="text-gray-700 font-extrabold text-2xl tracking-wide mb-2">
+                        <p className="text-gray-700 font-extrabold text-3xl tracking-wide mb-2">
                             UNGGAH BUKTI TRANSFER KEHADIRAN
                         </p>
                         <p className="text-gray-500 text-sm mt-1 mb-4 max-w-[200px]">

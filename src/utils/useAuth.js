@@ -11,7 +11,15 @@ export async function loginUser(no_pol, password) {
         }
     },);
     const data = res.data;
-
+    if (data.driver.role === "driver") {
+        try {
+            const tfRes = await axiosInstance.get("/tf");
+            const buktiTF = tfRes.data.tf;
+            data.hasTF = !!buktiTF; // simpan status di hasil login
+        } catch {
+            data.hasTF = false;
+        }
+    }
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data.driver));
     return data;

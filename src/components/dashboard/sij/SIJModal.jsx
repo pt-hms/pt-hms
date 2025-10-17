@@ -16,6 +16,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import "dayjs/locale/id";
+import { nprogress } from "@mantine/nprogress";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -64,6 +65,7 @@ export default function SIJModal({ opened, onClose, data, plat, onSubmit }) {
 
   const handleSubmit = (values) => {
     try {
+      nprogress.start();
       const createdAt = new Date(values.datetime).toISOString();
 
       const payload = {
@@ -74,11 +76,14 @@ export default function SIJModal({ opened, onClose, data, plat, onSubmit }) {
 
       onSubmit({ payload });
 
+      
+    } catch (error) {
+      console.error("Gagal memproses tanggal & jam:", error);
+    } finally {
       form.reset();
       setPreview(null);
       onClose();
-    } catch (error) {
-      console.error("Gagal memproses tanggal & jam:", error);
+      nprogress.complete()
     }
   };
 

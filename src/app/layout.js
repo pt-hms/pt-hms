@@ -9,6 +9,8 @@ import { Notifications } from "@mantine/notifications";
 import Script from "next/script";
 import { ModalsProvider } from "@mantine/modals";
 import GlobalLoader from "@/components/GlobalLoader";
+import { NavigationProgress } from "@mantine/nprogress";
+import "@mantine/nprogress/styles.css";
 
 const geistSans = Geist({
    variable: "--font-geist-sans",
@@ -39,6 +41,7 @@ export default function RootLayout({ children }) {
                withGlobalStyles
                withNormalizeCSS
             >
+               <NavigationProgress color="#e10b16" />
                <Notifications />
                <ModalsProvider>
                   <GlobalLoader />

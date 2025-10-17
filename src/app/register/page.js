@@ -106,7 +106,7 @@ export default function Page() {
             no_pol: "",
             kategori: "",
             mobil: "",
-            no_kep: "",
+            no_kep: null,
             exp_kep: null,
             no_hp: "",
             no_darurat: "",
@@ -119,8 +119,8 @@ export default function Page() {
             no_pol: (value) => (!value.trim() ? "Plat nomor wajib diisi" : null),
             kategori: (value) => (!value.trim() ? "Kategori driver wajib diisi" : null),
             mobil: (value) => (!value.trim() ? "Nama mobil wajib diisi" : null),
-            no_kep: (value) => (!value.trim() ? "Nomor KEP wajib diisi" : null),
-            exp_kep: (value) => (!value ? "Tanggal berlaku kartu wajib diisi" : null),
+            // no_kep: (value) => (!value.trim() ? "Nomor KEP wajib diisi" : null),
+            // exp_kep: (value) => (!value ? "Tanggal berlaku kartu wajib diisi" : null),
             no_hp: (value) => {
                 const trimmed = value.trim();
                 if (!trimmed) return "Nomor telepon wajib diisi";

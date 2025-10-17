@@ -23,6 +23,8 @@ import "dayjs/locale/id";
 import { exportToExcel } from "@/components/Export";
 import { deleteDriver, getDriver } from "@/utils/api/driver";
 import GlobalLoader from "@/components/GlobalLoader";
+import { nprogress } from "@mantine/nprogress";
+
 
 export default function TableView() {
   const [checkedRows, setCheckedRows] = useState([]);
@@ -119,9 +121,9 @@ const handleDelete = async (ids) => {
   try {
     const idArray = Array.isArray(ids) ? ids : [ids];
     console.log("Menghapus ID:", idArray);
-
+    nprogress.start();
     // Kirim array ID ke API
-    await deleteDriver(idArray);
+    const res = await deleteDriver(idArray);
     // Update tampilan tanpa fetch ulang
     setData((prev) =>
       prev.filter((item) => !idArray.includes(String(item.id)))
@@ -133,9 +135,7 @@ const handleDelete = async (ids) => {
            color: "green",
          });
     // Tutup modal dan reset
-    setCheckedRows([]);
-    modals.closeAll();
-    await fetchData();
+   
   } catch (error) {
     console.error(error);
           notifications.show({
@@ -143,6 +143,12 @@ const handleDelete = async (ids) => {
             message: error.response?.data?.message || "Terjadi Kesalahan Saat Mengunggah Gambar",
             color: "red",
           });
+          nprogress.complete();
+  } finally {
+     setCheckedRows([]);
+    modals.closeAll();
+    await fetchData();
+    nprogress.complete()
   }
 };
 

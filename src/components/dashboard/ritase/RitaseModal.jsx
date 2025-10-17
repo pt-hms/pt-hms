@@ -16,6 +16,7 @@ import { notifications } from "@mantine/notifications";
 import { DateTimePicker } from "@mantine/dates";
 import { createRitase, updateRitase } from "@/utils/api/ritase";
 import dayjs from "dayjs";
+import { nprogress } from "@mantine/nprogress";
 
 export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
   const [preview, setPreview] = useState(null);
@@ -61,6 +62,7 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
 
   const handleSubmit = async (values) => {
     try {
+      nprogress.start();
       const formData = new FormData();
 
       // Jika sedang EDIT → hanya kirim field no_pol, pickup, tujuan
@@ -107,6 +109,7 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
       form.reset();
       setPreview(null);
       onClose();
+      nprogress.complete()
     }
   };
 

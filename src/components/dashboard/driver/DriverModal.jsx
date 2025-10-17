@@ -17,6 +17,7 @@ import { useForm } from "@mantine/form";
 import { Icon } from "@iconify/react";
 import { DateInput } from "@mantine/dates";
 import { createDriver, updateDriver } from "@/utils/api/driver";
+import { nprogress } from "@mantine/nprogress";
 
 // password admin
 const ADMIN_SECRET_PASSWORD = "12345678"; // Pastikan ini sudah benar
@@ -119,8 +120,8 @@ function DriverFormModal({ opened, onClose, data, onSubmit }) {
       no_pol: (value) => (!value.trim() ? "Plat nomor wajib diisi" : null),
       kategori: (value) => (!value.trim() ? "Kategori driver wajib diisi" : null),
       mobil: (value) => (!value.trim() ? "Nama mobil wajib diisi" : null),
-      no_kep: (value) => (!value.trim() ? "Nomor KEP wajib diisi" : null),
-      exp_kep: (value) => (!value ? "Tanggal berlaku kartu wajib diisi" : null),
+      // no_kep: (value) => (!value.trim() ? "Nomor KEP wajib diisi" : null),
+      // exp_kep: (value) => (!value ? "Tanggal berlaku kartu wajib diisi" : null),
       no_hp: (value) => {
         const trimmed = value.trim();
         if (!trimmed) return "Nomor telepon wajib diisi";
@@ -175,6 +176,8 @@ const handleSubmit = async (values) => {
         formData.append(key, value);
     });
 
+    nprogress.start();
+
     if (data) await updateDriver(data.id, formData);
     else await createDriver(formData);
 
@@ -197,6 +200,7 @@ const handleSubmit = async (values) => {
     form.reset();
     setPreview(null);
     onClose();
+    nprogress.complete()
   }
 };
 

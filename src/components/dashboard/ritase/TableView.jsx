@@ -26,6 +26,8 @@ import "dayjs/locale/id";
 import { exportToExcel } from "@/components/Export";
 import { getSIJ } from "@/utils/api/sij";
 import { deleteRitase, getAllRitase } from "@/utils/api/ritase";
+import { nprogress } from "@mantine/nprogress";
+import {notifications} from "@mantine/notifications"
 
 export default function TableView() {
 
@@ -192,11 +194,11 @@ export default function TableView() {
   // ✅ Fungsi delete (tanpa alert)
   const handleDelete = async (ids) => {
     try {
+      nprogress.start()
       const idArray = Array.isArray(ids) ? ids : [ids];
       console.log("Menghapus ID:", idArray);
-  
       // Kirim array ID ke API
-      await deleteRitase(idArray);
+      const res = await deleteRitase(idArray);
   
       // Update tampilan tanpa fetch ulang
       setData((prev) =>
@@ -210,9 +212,6 @@ export default function TableView() {
               });
   
       // Tutup modal dan reset
-      setCheckedRows([]);
-      modals.closeAll();
-      await fetchData();
     } catch (error) {
       console.error(error);
               notifications.show({
@@ -220,6 +219,11 @@ export default function TableView() {
                 message: error.response?.data?.message || "Terjadi Kesalahan Saat Mengunggah Gambar",
                 color: "red",
               });
+    } finally {
+      setCheckedRows([]);
+      modals.closeAll();
+      await fetchData();
+      nprogress.complete();
     }
   };
 

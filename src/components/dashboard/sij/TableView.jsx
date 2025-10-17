@@ -23,6 +23,7 @@ import "dayjs/locale/id";
 import { exportToExcel } from "@/components/Export";
 import { deleteSIJ } from "@/utils/api/sij";
 import {notifications} from "@mantine/notifications"
+import { nprogress } from "@mantine/nprogress";
 
 dayjs.locale("id");
 
@@ -106,6 +107,7 @@ export default function TableView({ data }) {
 
  const handleDelete = async (ids) => {
   try {
+    nprogress.start();
     if (!ids || (Array.isArray(ids) && ids.length === 0)) return;
     const idArray = Array.isArray(ids) ? ids : [ids];
 
@@ -124,7 +126,6 @@ export default function TableView({ data }) {
           message: res.message || "Berhasil menghapus data",
           color: "green",
         });
-    setCheckedRows([]);
   } catch (error) {
         console.error(error);
         notifications.show({
@@ -133,7 +134,9 @@ export default function TableView({ data }) {
           color: "red",
         });
       } finally {
+    setCheckedRows([]);
     modals.closeAll();
+    nprogress.complete();
   }
 };
 

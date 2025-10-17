@@ -85,6 +85,9 @@ export default function TableView({ data }) {
     setSelectedCollapse(selectedCollapse === id ? null : id);
   };
 
+  console.log(paginatedData);
+  
+
   // Konfirmasi hapus
   const openDeleteConfirm = (ids) => {
     modals.openConfirmModal({

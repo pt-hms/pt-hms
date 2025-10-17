@@ -11,15 +11,7 @@ export async function loginUser(no_pol, password) {
         }
     },);
     const data = res.data;
-    if (data.driver.role === "driver") {
-        try {
-            const tfRes = await axiosInstance.get("/tf");
-            const buktiTF = tfRes.data.tf;
-            data.hasTF = !!buktiTF; // simpan status di hasil login
-        } catch {
-            data.hasTF = false;
-        }
-    }
+
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data.driver));
     return data;
@@ -60,34 +52,39 @@ export function useAuth(role = null) {
             return;
         }
 
-        // Set user dulu agar UI bisa render
-        setUser(userData);
-        setLoading(false);
+        const checkBuktiTF = async () => {
+            try {
+                // Ambil status bukti_tf dari API /tf
+                const res = await axiosInstance.get(`/tf`);
+                const buktiTF = res.data.tf; // sesuaikan dengan response API\
+                console.log(buktiTF);
 
-        // cek buktiTF async, tapi tidak block UI
-        if (userData.role === "driver") {
-            axiosInstance.get("/tf")
-                .then(res => {
-                    const buktiTF = res.data.tf;
-                    if (!buktiTF) {
-                        router.replace("/sij"); // redirect jika belum ada
-                    }
-                })
-                .catch(err => {
-                    console.error("Failed to check bukti_tf:", err);
-                    router.replace("/");
-                });
-        }
+                // Jika driver belum upload bukti_tf → paksa ke /sij
+                if (userData.role === "driver" && !buktiTF) {
+                    router.replace("/sij");
+                    return;
+                }
 
-        // cek role spesifik
-        if (role && userData.role !== role) {
-            router.replace(userData.role === "admin" ? "/admin" : "/driver");
-        }
+                // Cek role jika ada role spesifik
+                if (role && userData.role !== role) {
+                    router.replace(userData.role === "admin" ? "/admin" : "/driver");
+                    return;
+                }
+
+                setUser(userData);
+                setLoading(false);
+            } catch (err) {
+                console.error("Failed to check bukti_tf:", err);
+                router.replace("/"); // fallback redirect
+            }
+        };
+
+        checkBuktiTF();
     }, [router, role]);
 
     return { user, loading };
-}
 
+}
 
 export function useGuest() {
     const router = useRouter();

@@ -53,18 +53,7 @@ export default function page() {
     setLoading(true);
     try {
       const data = await loginUser(values.plat, values.password);
-      const res = await axiosInstance.get("/tf", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const buktiTF = res.data?.tf;
-
-      // 🧭 Tentukan arah berdasarkan TF
-      if (!buktiTF) {
-        router.replace("/sij");
-      } else {
-        router.replace("/driver");
-      }
+      router.push(data.driver.role === "admin" ? "/admin" : "/driver");
     } catch (err) {
       notifications.show({
         title: "Login Gagal",

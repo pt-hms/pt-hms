@@ -122,18 +122,27 @@ const handleDelete = async (ids) => {
 
     // Kirim array ID ke API
     await deleteDriver(idArray);
-
     // Update tampilan tanpa fetch ulang
     setData((prev) =>
       prev.filter((item) => !idArray.includes(String(item.id)))
-    );
-
+  );
+  
+  notifications.show({
+           title: "Berhasil",
+           message: res.message || "Berhasil menghapus data",
+           color: "green",
+         });
     // Tutup modal dan reset
     setCheckedRows([]);
     modals.closeAll();
     await fetchData();
-  } catch (err) {
-    console.error("Gagal menghapus data:", err);
+  } catch (error) {
+    console.error(error);
+          notifications.show({
+            title: "Gagal",
+            message: error.response?.data?.message || "Terjadi Kesalahan Saat Mengunggah Gambar",
+            color: "red",
+          });
   }
 };
 

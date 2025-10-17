@@ -24,8 +24,10 @@ import { modals } from "@mantine/modals";
 import dayjs from "dayjs";
 import "dayjs/locale/id";
 import { exportToExcel } from "@/components/Export";
+import { getSIJ } from "@/utils/api/sij";
+import { deleteRitase, getAllRitase } from "@/utils/api/ritase";
 
-export default function TableView({ data }) {
+export default function TableView() {
 
   const [selectedRow, setSelectedRow] = useState(null);
 
@@ -45,7 +47,29 @@ export default function TableView({ data }) {
 
   const [timeFilter, setTimeFilter] = useState(null);
 
-  const itemsPerPage = 10;
+
+   const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const itemsPerPage = 10;
+  
+    // Fetch data driver
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const res = await getAllRitase();
+        setData(res.ritase);
+      } catch (err) {
+        console.error("Gagal ambil data driver:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    
+  
+    useEffect(() => {
+      fetchData();
+    }, []);
 
 
 
@@ -55,30 +79,11 @@ export default function TableView({ data }) {
 
     ? data
 
-    : Array.isArray(data?.ritase)
+    : Array.isArray(data)
 
-    ? data.ritase
+    ? data
 
     : [];
-
-
-
-  const formattedData = normalizedData.map((item) => ({
-    ...item,
-    id: item.id,
-    name: item.user?.nama || "-",
-    plate: item.user?.no_pol || "-",
-    category: item.user?.kategori || "-",
-    pickup: item.pickup_point || "-",
-    destination: item.tujuan || "-",
-    ss: item.ss_order || null,
-    date: item.createdAt
-      ? dayjs(item.createdAt).locale("id").format("YYYY-MM-DD")
-      : "-",
-    time: item.createdAt
-      ? dayjs(item.createdAt).locale("id").format("HH:mm")
-      : "-",
-  }));
 
 
   // 🔹 Jam filter (07:00 - 23:00)
@@ -97,23 +102,31 @@ export default function TableView({ data }) {
 
   // 🔍 Filtering
 
+    // 🔍 Filtering (search + time)
   useEffect(() => {
-    const searchText = search.toLowerCase();
-const filtered = formattedData.filter((d) => {
+    const searchText = search.toLowerCase().trim();
 
+    const filtered = data?.filter((d) => {
+      const nama = d?.user?.nama?.toLowerCase() || "";
+      const plat = d?.user?.no_pol?.toLowerCase() || "";
+      const pickup = d?.pickup_point?.toLowerCase() || "";
+      const tujuan = d?.tujuan?.toLowerCase() || "";
+
+      // Filter berdasarkan teks pencarian
       const matchSearch =
-        d.plate.toLowerCase().includes(searchText) ||
-        d.name.toLowerCase().includes(searchText) ||
-        d.pickup.toLowerCase().includes(searchText) ||
-        d.destination.toLowerCase().includes(searchText);
+        nama.includes(searchText) ||
+        plat.includes(searchText) ||
+        pickup.includes(searchText) ||
+        tujuan.includes(searchText);
 
+      // Filter berdasarkan jam (HH:mm)
       let matchTime = true;
-      if (timeFilter && d.time) {
-
-        const rowHour = parseInt(d.time.split(":")[0], 10);
-        const filterHour = parseInt(timeFilter.split(":")[0], 10);
-        matchTime = rowHour === filterHour;
+      if (timeFilter && d?.createdAt) {
+        const dataHour = dayjs(d.createdAt).format("HH");
+        const filterHour = timeFilter.split(":")[0]; // ambil "07" dari "07:00"
+        matchTime = dataHour === filterHour;
       }
+
       return matchSearch && matchTime;
     });
 
@@ -121,20 +134,16 @@ const filtered = formattedData.filter((d) => {
     setPage(1);
   }, [search, timeFilter, data]);
 
+  const totalPages = Math.ceil(filteredData?.length / itemsPerPage);
 
-
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-
-  const paginatedData = filteredData.slice(
+  const paginatedData = filteredData?.slice(
 
     (page - 1) * itemsPerPage,
 
     page * itemsPerPage
 
   );
-
-
-
+  
   // 🔹 Checkbox
   const toggleCheck = (id) => {
     setCheckedRows((prev) =>
@@ -147,11 +156,11 @@ const filtered = formattedData.filter((d) => {
     else setSelectedRow(row);
   };
 
-  const handleSubmit = (form) => {
-    if (editData) console.log("Update data:", form);
-    else console.log("Create data:", form);
-    setOpened(false);
-  };
+  const handleSubmit = async () => {
+  await fetchData(); // refresh tabel setelah create/update
+  setOpened(false);
+};
+
 
   // 🔹 Edit
   const handleEdit = (row) => {
@@ -162,7 +171,7 @@ const filtered = formattedData.filter((d) => {
   // 🔹 Hapus
   const openDeleteConfirm = (ids) => {
     modals.openConfirmModal({
-      title: "Konfirmasi Hapus",
+      title: "Konfirmasi Hapus Data",
       centered: true,
       children: (
         <Text size="sm">
@@ -173,21 +182,50 @@ const filtered = formattedData.filter((d) => {
           ?
         </Text>
       ),
-      labels: { confirm: "Ya", cancel: "Tidak" },
+      labels: { confirm: "Ya, Hapus", cancel: "Batal" },
       confirmProps: { color: "red" },
+      cancelProps: { variant: "subtle" },
       onConfirm: () => handleDelete(ids),
     });
   };
+  
+  // ✅ Fungsi delete (tanpa alert)
+  const handleDelete = async (ids) => {
+    try {
+      const idArray = Array.isArray(ids) ? ids : [ids];
+      console.log("Menghapus ID:", idArray);
+  
+      // Kirim array ID ke API
+      await deleteRitase(idArray);
+  
+      // Update tampilan tanpa fetch ulang
+      setData((prev) =>
+        prev.filter((item) => !idArray.includes(String(item.id)))
+      );
 
-  const handleDelete = (ids) => {
-    console.log("Hapus:", ids);
-    setCheckedRows([]);
-    modals.closeAll();
+       notifications.show({
+                title: "Berhasil",
+                message: res.message || "Berhasil menghapus data",
+                color: "green",
+              });
+  
+      // Tutup modal dan reset
+      setCheckedRows([]);
+      modals.closeAll();
+      await fetchData();
+    } catch (error) {
+      console.error(error);
+              notifications.show({
+                title: "Gagal",
+                message: error.response?.data?.message || "Terjadi Kesalahan Saat Mengunggah Gambar",
+                color: "red",
+              });
+    }
   };
 
-  const platNo = formattedData.map((item) => ({
-    value: item.plate,
-    label: item.plate,
+  const platNo = data?.map((item) => ({
+    value: item.user.no_pol,
+    label: item.user.no_pol,
   }));
 
   const headers = {
@@ -264,7 +302,6 @@ const filtered = formattedData.filter((d) => {
             onClick={() => {
               setEditData(null);
               setOpened(true);
-
             }}
           >
             Tambah
@@ -338,17 +375,17 @@ const filtered = formattedData.filter((d) => {
                     onChange={() => toggleCheck(row.id)}
                   />
                 </Table.Td>
-                <Table.Td>{row.name}</Table.Td>
-                <Table.Td>{row.plate}</Table.Td>
+                <Table.Td>{row.user.nama}</Table.Td>
+                <Table.Td>{row.user.no_pol}</Table.Td>
                 <Table.Td>
-                  <Badge color={row.category === "PREMIUM" ? "#e10b16" : "gray"} fullWidth size="md">{row.category}</Badge>
+                  <Badge color={row.user.kategori === "PREMIUM" ? "#e10b16" : "gray"} fullWidth size="md">{row.user.kategori}</Badge>
                 </Table.Td>
-                <Table.Td>{row.pickup}</Table.Td>
-                <Table.Td>{row.destination}</Table.Td>
-                <Table.Td>{row.time || "-"}</Table.Td>
+                <Table.Td>{row.pickup_point}</Table.Td>
+                <Table.Td>{row.tujuan}</Table.Td>
+                <Table.Td>{dayjs(row.createdAt).locale("id").format("HH:mm") || "-"}</Table.Td>
                 <Table.Td>
-                  {row.date
-                    ? dayjs(row.date).locale("id").format("D MMMM YYYY")
+                  {row.createdAt
+                    ? dayjs(row.createdAt).locale("id").format("D MMMM YYYY")
                     : "-"}
                 </Table.Td>
                 <Table.Td className="text-center">
@@ -359,11 +396,11 @@ const filtered = formattedData.filter((d) => {
                       radius="xl"
                       size="xs"
                       onClick={() =>
-                        row.ss
+                        row.ss_order
                           ? setSsPreview(
-                              typeof row.ss === "string"
-                                ? row.ss
-                                : URL.createObjectURL(row.ss)
+                              typeof row.ss_order === "string"
+                                ? row.ss_order
+                                : URL.createObjectURL(row.ss_order)
                             )
                           : alert("Bukti SS belum tersedia")
                       }
@@ -376,7 +413,10 @@ const filtered = formattedData.filter((d) => {
                       color="blue"
                       radius="xl"
                       size="xs"
-                      onClick={() => handleShowDetail(row)}
+                      onClick={() => {
+                        setEditData(row);
+                        setOpened(true);
+                      }}
                     >
                       <Icon icon="mdi:open-in-new" width={18} />
                     </Button>
@@ -431,7 +471,7 @@ const filtered = formattedData.filter((d) => {
         <Box className="p-4 border-t border-gray-200 bg-gray-50 flex flex-wrap items-center justify-between sticky bottom-0 w-full">
           <Text size="sm" className="text-gray-700">
             Data Driver Terpilih dengan Plat Nomor:{" "}
-            <span className="font-semibold">{selectedRow.plate}</span>
+            <span className="font-semibold">{selectedRow.user.no_pol}</span>
           </Text>
 
           <Group gap="xs">

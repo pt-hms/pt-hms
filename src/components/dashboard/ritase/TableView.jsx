@@ -278,15 +278,6 @@ export default function TableView() {
           className="w-full lg:w-40"
         />
         <Group>
-          {checkedRows.length > 0 && (
-            <Button
-              color="red"
-              leftSection={<Icon icon="mdi:trash-can" />}
-              onClick={() => openDeleteConfirm(checkedRows)}
-            >
-              Hapus ({checkedRows.length})
-            </Button>
-          )}
           <Button
             color="yellow"
             leftSection={<Icon icon="mdi:download" />}

@@ -32,7 +32,7 @@ export async function updateRitase(id, formData) {
 }
 
 export async function deleteRitase(ids) {
-  const res = await axiosInstance.post("/ritase/delete", {
+  const res = await axiosInstance.delete("/ritase", {
     data: { "id": ids },
     headers: { "Content-Type": "application/json" },
   });

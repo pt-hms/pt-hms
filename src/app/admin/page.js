@@ -38,9 +38,9 @@ export default function Page() {
           report += `*GCA* Driver Standby : \n\n`;
         });
 
-        report += `*TOTAL DAD : ${res.total.totalDailyActiveDriver}\n*`;
-        report += `*TOTAL RIDES : ${res.total.totalRides}\n*`;
-        report += `*STANDBY POOL : \n*`;
+        report += `*TOTAL DAD : ${res.total.totalDailyActiveDriver}*\n`;
+        report += `*TOTAL RIDES : ${res.total.totalRides}*\n`;
+        report += `*STANDBY POOL : *\n`;
 
         setPreviewText(report);
       } else {

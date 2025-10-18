@@ -207,18 +207,6 @@ export default function TableView() {
           valueFormat="DD MMMM YYYY"
           clearable={false}
         />
-
-        <Group>
-          <Button
-            color="yellow"
-            leftSection={<Icon icon="mdi:download" />}
-            onClick={() =>
-              exportToExcel(filteredData, "SIJ PT HMS.xlsx", headers)
-            }
-          >
-            Unduh
-          </Button>
-        </Group>
       </Group>
 
       {/* Jika ada checkbox terpilih */}

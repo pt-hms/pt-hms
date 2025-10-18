@@ -14,10 +14,12 @@ import {
   Image,
   Pagination,
   ActionIcon,
+  Select
 } from "@mantine/core";
 import { Icon } from "@iconify/react";
 import DriverModal from "./DriverModal";
 import { modals } from "@mantine/modals";
+import { DatePickerInput } from "@mantine/dates";
 import dayjs from "dayjs";
 import "dayjs/locale/id";
 import { exportToExcel } from "@/components/Export";
@@ -25,6 +27,7 @@ import { deleteDriver, getDriver } from "@/utils/api/driver";
 import GlobalLoader from "@/components/GlobalLoader";
 import { nprogress } from "@mantine/nprogress";
 import { notifications } from "@mantine/notifications";
+import { downloadDriverExcel } from "@/utils/api/export";
 
 
 export default function TableView() {
@@ -39,6 +42,9 @@ export default function TableView() {
   const [driverIdToShowPassword, setDriverIdToShowPassword] = useState(null);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+   const [exportModal, setExportModal] = useState(false);
+const [exportDate, setExportDate] = useState([null, null]);
+const [exportMode, setExportMode] = useState(""); // atau "range"
   const itemsPerPage = 10;
 
   // Fetch data driver
@@ -59,6 +65,13 @@ export default function TableView() {
   useEffect(() => {
     fetchData();
   }, []);
+
+   const excludeDate = (date) => {
+        if (!exportDate[0]) return false;
+        const start = dayjs(exportDate[0]);
+        const diff = dayjs(date).diff(start, "day");
+        return diff > 7 || diff < 0;
+      };
 
   // 🔍 Filtering data efisien dengan useMemo
   const filteredData = useMemo(() => {
@@ -192,7 +205,7 @@ const handleDelete = async (ids) => {
             color="yellow"
             leftSection={<Icon icon="mdi:download" />}
             onClick={() =>
-              exportToExcel(filteredData, "Driver PT HMS.xlsx", headers)
+              setExportModal(true)
             }
           >
             Unduh
@@ -412,6 +425,121 @@ const handleDelete = async (ids) => {
           type="confirm_admin"
         />
       )}
+      <Modal
+        opened={exportModal}
+        onClose={() => {
+          setExportModal(false);
+          setExportDate([null, null]);
+        }}
+        title="Export Laporan Ritase"
+        size="md"
+        centered
+        radius="lg"
+      >
+        <Box className="space-y-4">
+          {/* Pilihan Mode Export */}
+          <Select
+            label="Mode Export"
+            placeholder="Pilih mode export"
+            value={exportMode}
+            onChange={setExportMode}
+            data={[
+              { value: "single", label: "Satu Tanggal" },
+              { value: "range", label: "Rentang Tanggal (maks. 7 hari)" },
+            ]}
+            required
+          />
+      
+          {/* Date Picker */}
+          {exportMode === "single" && (
+            <DatePickerInput
+              label="Pilih Tanggal"
+              value={exportDate[0]}
+              onChange={(value) => setExportDate([value, null])}
+              placeholder="Pilih satu tanggal"
+              locale="id"
+              clearable
+              size="md"
+              className="w-full"
+            />
+          )} {exportMode === "range" && (
+            <DatePickerInput
+              type="range"
+              label="Pilih Rentang Tanggal"
+              value={exportDate}
+              onChange={(value) => {
+                if (value === false) {
+                  setExportDate([null, null]);
+                } else {
+                  setExportDate(value);
+                }
+              }}
+              placeholder="Pilih rentang tanggal (maks. 7 hari)"
+              locale="id"
+              clearable
+              size="md"
+              className="w-full"
+              excludeDate={excludeDate}
+            />
+          )}
+      
+          <Group justify="flex-end" mt="md">
+            <Button variant="light" onClick={() => setExportModal(false)}>
+              Batal
+            </Button>
+      
+            <Button
+              color="green"
+              onClick={async () => {
+                if (!exportDate || (!exportDate[0] && !exportDate[1])) {
+                  notifications.show({
+                    title: "Peringatan",
+                    message: "Pilih tanggal terlebih dahulu",
+                    color: "red",
+                  });
+                  return;
+                }
+      
+                // Validasi range maksimum 7 hari
+                if (
+                  exportMode === "range" &&
+                  exportDate[0] &&
+                  exportDate[1] &&
+                  dayjs(exportDate[1]).diff(dayjs(exportDate[0]), "day") > 7
+                ) {
+                  notifications.show({
+                    title: "Peringatan",
+                    message: "Rentang tanggal maksimal 7 hari.",
+                    color: "red",
+                  });
+                  return;
+                }
+      
+                try {
+                  await downloadDriverExcel(exportDate);
+                  notifications.show({
+                    title: "Berhasil",
+                    message: "Laporan berhasil diunduh",
+                    color: "green",
+                  });
+                  setExportModal(false);
+                  setExportDate([null, null]);
+                } catch (err) {
+                  notifications.show({
+                    title: "Gagal",
+                    message:
+                      err.response?.data?.message ||
+                      "Terjadi kesalahan saat mengunduh laporan",
+                    color: "red",
+                  });
+                }
+              }}
+            >
+              Export
+            </Button>
+          </Group>
+        </Box>
+      </Modal>
     </div>
   );
 }

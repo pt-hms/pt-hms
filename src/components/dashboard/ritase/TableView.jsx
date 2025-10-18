@@ -26,6 +26,7 @@ import { deleteRitase, getAllRitase } from "@/utils/api/ritase";
 import { nprogress } from "@mantine/nprogress";
 import { notifications } from "@mantine/notifications";
 import { getDriver } from "@/utils/api/driver";
+import { downloadRitaseExcel } from "@/utils/api/export";
 
 export default function TableView() {
   const [selectedRow, setSelectedRow] = useState(null);
@@ -41,6 +42,12 @@ export default function TableView() {
   const [data, setData] = useState([]);
   const [driver, setDriver] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [exportModal, setExportModal] = useState(false);
+const [exportDate, setExportDate] = useState([null, null]);
+const [exportMode, setExportMode] = useState(""); // atau "range"
+
+
+
 
   const itemsPerPage = 10;
 
@@ -67,6 +74,8 @@ export default function TableView() {
 
   const normalizedData = Array.isArray(data) ? data : [];
 
+  console.log(exportDate);
+  
   // Jam filter (07:00 - 23:00)
   const hours = Array.from({ length: 18 }, (_, i) => {
     const hour = 7 + i;
@@ -192,6 +201,13 @@ export default function TableView() {
     time: "Jam",
   };
 
+   const excludeDate = (date) => {
+      if (!exportDate[0]) return false;
+      const start = dayjs(exportDate[0]);
+      const diff = dayjs(date).diff(start, "day");
+      return diff > 7 || diff < 0;
+    };
+
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   if (!mounted) return null;
@@ -231,9 +247,7 @@ export default function TableView() {
           <Button
             color="yellow"
             leftSection={<Icon icon="mdi:download" />}
-            onClick={() =>
-              exportToExcel(filteredData, "Ritase HMS.xlsx", headers)
-            }
+            onClick={() => setExportModal(true)}
           >
             Unduh
           </Button>
@@ -407,6 +421,124 @@ export default function TableView() {
                   </Text>
                 )}
               </Modal>
+           <Modal
+  opened={exportModal}
+  onClose={() => {
+    setExportModal(false);
+    setExportDate([null, null]);
+  }}
+  title="Export Laporan Ritase"
+  size="md"
+  centered
+  radius="lg"
+>
+  <Box className="space-y-4">
+    {/* Pilihan Mode Export */}
+    <Select
+      label="Mode Export"
+      placeholder="Pilih mode export"
+      value={exportMode}
+      onChange={setExportMode}
+      data={[
+        { value: "single", label: "Satu Tanggal" },
+        { value: "range", label: "Rentang Tanggal (maks. 7 hari)" },
+      ]}
+      required
+    />
+
+    {/* Date Picker */}
+    {exportMode === "single" && (
+      <DatePickerInput
+        label="Pilih Tanggal"
+        value={exportDate[0]}
+        onChange={(value) => setExportDate([value, null])}
+        placeholder="Pilih satu tanggal"
+        locale="id"
+        clearable
+        size="md"
+        className="w-full"
+      />
+    )} {exportMode === "range" && (
+      <DatePickerInput
+        type="range"
+        label="Pilih Rentang Tanggal"
+        value={exportDate}
+        onChange={(value) => {
+          if (value === false) {
+            setExportDate([null, null]);
+          } else {
+            setExportDate(value);
+          }
+        }}
+        placeholder="Pilih rentang tanggal (maks. 7 hari)"
+        locale="id"
+        clearable
+        size="md"
+        className="w-full"
+        excludeDate={excludeDate}
+      />
+    )}
+
+    <Group justify="flex-end" mt="md">
+      <Button variant="light" onClick={() => setExportModal(false)}>
+        Batal
+      </Button>
+
+      <Button
+        color="green"
+        onClick={async () => {
+          if (!exportDate || (!exportDate[0] && !exportDate[1])) {
+            notifications.show({
+              title: "Peringatan",
+              message: "Pilih tanggal terlebih dahulu",
+              color: "red",
+            });
+            return;
+          }
+
+          // Validasi range maksimum 7 hari
+          if (
+            exportMode === "range" &&
+            exportDate[0] &&
+            exportDate[1] &&
+            dayjs(exportDate[1]).diff(dayjs(exportDate[0]), "day") > 7
+          ) {
+            notifications.show({
+              title: "Peringatan",
+              message: "Rentang tanggal maksimal 7 hari.",
+              color: "red",
+            });
+            return;
+          }
+
+          try {
+            await downloadRitaseExcel(exportDate);
+            notifications.show({
+              title: "Berhasil",
+              message: "Laporan berhasil diunduh",
+              color: "green",
+            });
+            setExportModal(false);
+            setExportDate([null, null]);
+          } catch (err) {
+            notifications.show({
+              title: "Gagal",
+              message:
+                err.response?.data?.message ||
+                "Terjadi kesalahan saat mengunduh laporan",
+              color: "red",
+            });
+          }
+        }}
+      >
+        Export
+      </Button>
+    </Group>
+  </Box>
+</Modal>
+
+
+
     </div>
   );
 }

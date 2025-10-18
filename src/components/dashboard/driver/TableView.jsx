@@ -44,12 +44,14 @@ export default function TableView() {
   // Fetch data driver
   const fetchData = async () => {
     try {
+      nprogress.start()
       setLoading(true);
       const res = await getDriver();
       setData(res.drivers || []);
     } catch (err) {
       console.error("Gagal ambil data driver:", err);
     } finally {
+      nprogress.complete()
       setLoading(false);
     }
   };

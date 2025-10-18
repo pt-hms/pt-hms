@@ -25,6 +25,7 @@ import { exportToExcel } from "@/components/Export";
 import { deleteRitase, getAllRitase } from "@/utils/api/ritase";
 import { nprogress } from "@mantine/nprogress";
 import { notifications } from "@mantine/notifications";
+import { getDriver } from "@/utils/api/driver";
 
 export default function TableView() {
   const [selectedRow, setSelectedRow] = useState(null);
@@ -38,6 +39,7 @@ export default function TableView() {
   const [timeFilter, setTimeFilter] = useState(null);
   const [dateFilter, setDateFilter] = useState(null); // ⬅️ Tanggal filter (range)
   const [data, setData] = useState([]);
+  const [driver, setDriver] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const itemsPerPage = 10;
@@ -46,11 +48,15 @@ export default function TableView() {
   const fetchData = async () => {
     try {
       setLoading(true);
+      nprogress.start()
       const res = await getAllRitase();
+      const dr = await getDriver();
       setData(res.ritase);
+      setDriver(dr.drivers || []);
     } catch (err) {
       console.error("Gagal ambil data driver:", err);
     } finally {
+      nprogress.complete()
       setLoading(false);
     }
   };
@@ -170,9 +176,9 @@ export default function TableView() {
     }
   };
 
-  const platNo = data?.map((item) => ({
-    value: item.user.no_pol,
-    label: item.user.no_pol,
+  const platNo = driver?.map((item) => ({
+    value: item.no_pol,
+    label: item.no_pol,
   }));
 
   const headers = {
@@ -246,6 +252,21 @@ export default function TableView() {
 
       {/* Table Section */}
       <Box className="w-full bg-white shadow-sm rounded-xl overflow-x-auto border border-gray-100">
+         {checkedRows.length > 0 && (
+                  <Box className="flex items-center justify-between bg-red-50 border-b border-red-200 px-4 py-2">
+                    <Text size="sm" className="text-red-700 font-medium">
+                      {checkedRows.length} data terpilih
+                    </Text>
+                    <Button
+                      color="red"
+                      size="xs"
+                      leftSection={<Icon icon="mdi:trash-can" width={16} />}
+                      onClick={() => openDeleteConfirm(checkedRows)}
+                    >
+                      Hapus Data Terpilih
+                    </Button>
+                  </Box>
+                )}
         <Table striped highlightOnHover withColumnBorders>
           <Table.Thead className="bg-gray-50">
             <Table.Tr>

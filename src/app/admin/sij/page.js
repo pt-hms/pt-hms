@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import TableView from '@/components/dashboard/sij/TableView'
 import { getSIJ } from '@/utils/api/sij';
 import GlobalLoader from '@/components/GlobalLoader';
+import { nprogress } from "@mantine/nprogress";
 export default function page() {
 
     const [data, setData] = useState([]);
@@ -10,6 +11,7 @@ export default function page() {
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
+            nprogress.start()
             try {
                 const data = await getSIJ();
                 setData(data.drivers);
@@ -17,6 +19,7 @@ export default function page() {
                 console.error("Gagal ambil data driver:", err);
             } finally {
                 setLoading(false);
+                nprogress.complete()
             }
         };
 

@@ -278,6 +278,7 @@ export default function TableView() {
               <Table.Th>NAMA</Table.Th>
               <Table.Th>PLAT</Table.Th>
               <Table.Th>JENIS</Table.Th>
+              <Table.Th>ARGO</Table.Th>
               <Table.Th>PICKUP POINT</Table.Th>
               <Table.Th>TUJUAN</Table.Th>
               <Table.Th>JAM</Table.Th>
@@ -308,6 +309,7 @@ export default function TableView() {
                     {row.user.kategori}
                   </Badge>
                 </Table.Td>
+                <Table.Td>{row.argo}</Table.Td>
                 <Table.Td>{row.pickup_point}</Table.Td>
                 <Table.Td>{row.tujuan}</Table.Td>
                 <Table.Td>

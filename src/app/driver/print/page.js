@@ -8,6 +8,7 @@ import { TextInput, Button, Paper, Container, Title, Text, Center, Loader } from
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import "dayjs/locale/id";
+import { notifications } from "@mantine/notifications";
 
 dayjs.locale("id"); // pakai bahasa Indonesia
 
@@ -77,6 +78,7 @@ export default function print() {
                     await print.writeText("Bandara Soekarno - Hatta", { align: "center" });
                     await print.writeText(`Nama: ${profile?.nama}`, { align: "center" });
                     await print.writeText(`No Pol: ${profile?.no_pol}`, { align: "center" });
+                    await print.writeText(`Kategori: ${profile?.kategori}`, { align: "center" });
                     await print.writeDashLine();
                     await print.writeText(`${formatted}`, { align: "center" });
                     await print.writeText(`${nextSij}`, { align: "center", bold: true, size: "double" });
@@ -100,6 +102,17 @@ export default function print() {
                     statusElement.textContent = "Print successful!";
                     const newSij = await getLastSIJ();
                     setData(newSij);
+
+                    statusElement.style.color = "#e10b16";
+                    statusElement.textContent = "Harap matikan bluetooth jika sudah selesai.";
+
+                    notifications.show({
+                        title: "Cetak selesai",
+                        message: "Harap matikan bluetooth jika sudah selesai.",
+                        color: "green",
+                        autoClose: 3000,
+                    });
+
                 } catch (error) {
                     console.error("Printing failed:", error);
                     statusElement.style.color = "#333";

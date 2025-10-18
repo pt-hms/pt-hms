@@ -24,6 +24,7 @@ import { exportToExcel } from "@/components/Export";
 import { deleteDriver, getDriver } from "@/utils/api/driver";
 import GlobalLoader from "@/components/GlobalLoader";
 import { nprogress } from "@mantine/nprogress";
+import { notifications } from "@mantine/notifications";
 
 
 export default function TableView() {

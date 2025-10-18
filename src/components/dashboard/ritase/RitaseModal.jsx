@@ -27,6 +27,7 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
       no_pol: "",
       tanggal_jam: null,
       ss_order: null,
+      argo: "",
       pickup_point: "",
       tujuan: "",
     },
@@ -41,6 +42,7 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
     if (opened && data) {
       form.setValues({
         no_pol: data.user?.no_pol || data.no_pol || "",
+        argo: data.argo || "",
         pickup_point: data.pickup_point || "",
         tujuan: data.tujuan || "",
         tanggal_jam: data.createdAt ? new Date(data.createdAt) : null,
@@ -56,9 +58,6 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
 
   console.log(data);
   console.log(form.values);
-  
-  
-
 
   const handleSubmit = async (values) => {
     try {
@@ -161,6 +160,11 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
             {/* Field pickup & tujuan hanya muncul saat edit */}
             {data && (
               <>
+                <TextInput
+                  label="Argo"
+                  placeholder="Masukkan argo"
+                  {...form.getInputProps("argo")}
+                />
                 <TextInput
                   label="Pickup Point"
                   placeholder="Masukkan pickup point"

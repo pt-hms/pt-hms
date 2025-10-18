@@ -319,6 +319,15 @@ export default function TableView() {
                 <Table.Td className="text-center">
                   <Group justify="center" gap="xs">
                     <Button
+                                              variant="subtle"
+                                              color="green"
+                                              radius="xl"
+                                              size="xs"
+                                              onClick={() => setSsPreview(row.ss_order)}
+                                            >
+                                              <Icon icon="mdi:image-outline" width={18} />
+                                            </Button>
+                    <Button
                       variant="subtle"
                       color="blue"
                       radius="xl"
@@ -359,6 +368,22 @@ export default function TableView() {
         onSubmit={handleSubmit}
         closeOnClickOutside={false}
       />
+       <Modal
+                opened={!!ssPreview}
+                onClose={() => setSsPreview(null)}
+                title="Bukti Transfer"
+                size="md"
+                centered
+                radius="lg"
+              >
+                {ssPreview ? (
+                  <Image src={ssPreview} alt="Bukti TF" width="100%" radius="md" />
+                ) : (
+                  <Text c="dimmed" ta="center">
+                    Tidak ada gambar untuk ditampilkan.
+                  </Text>
+                )}
+              </Modal>
     </div>
   );
 }

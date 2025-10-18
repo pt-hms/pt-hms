@@ -76,6 +76,7 @@ export function useAuth(role = null) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    // 🧠 Cek login dan role
     useEffect(() => {
         const token = Cookies.get("token");
         const userData = getUser();
@@ -111,17 +112,44 @@ export function useAuth(role = null) {
         checkBuktiTF();
     }, [router, role]);
 
-    // 🔄 Auto logout real-time setiap 1 menit
+    // 🕛 Auto logout jam 00:00
     useEffect(() => {
         const interval = setInterval(() => {
-            const token = Cookies.get("token");
-            if (!token) {
+            const now = new Date();
+            if (now.getHours() === 0 && now.getMinutes() === 0) {
                 logoutUser();
                 router.replace("/");
             }
-        }, 60 * 30000); // cek setiap 1 menit
+        }, 60 * 1000); // cek setiap 1 menit
 
         return () => clearInterval(interval);
+    }, [router]);
+
+    // 💤 Auto logout setelah 30 menit tidak aktif
+    useEffect(() => {
+        let idleTimer;
+
+        const resetIdleTimer = () => {
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => {
+                logoutUser();
+                router.replace("/");
+            }, 30 * 60 * 1000); // 30 menit idle → logout
+        };
+
+        const activityEvents = ["mousemove", "keydown", "scroll", "click"];
+        activityEvents.forEach((event) => {
+            window.addEventListener(event, resetIdleTimer);
+        });
+
+        resetIdleTimer(); // Jalankan saat pertama load
+
+        return () => {
+            clearTimeout(idleTimer);
+            activityEvents.forEach((event) => {
+                window.removeEventListener(event, resetIdleTimer);
+            });
+        };
     }, [router]);
 
     return { user, loading };

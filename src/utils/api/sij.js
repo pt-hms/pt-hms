@@ -1,8 +1,8 @@
 import axiosInstance from "../axios";
 
 // Ambil semua SIJ
-export async function getSIJ() {
-    const res = await axiosInstance.get("/sij");
+export async function getSIJ(tanggal) {
+    const res = await axiosInstance.get(`/sij?tanggal=${tanggal}`);
     return res.data;
 }
 

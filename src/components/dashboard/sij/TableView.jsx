@@ -21,13 +21,13 @@ import { modals } from "@mantine/modals";
 import dayjs from "dayjs";
 import "dayjs/locale/id";
 import { exportToExcel } from "@/components/Export";
-import { deleteSIJ } from "@/utils/api/sij";
+import { deleteSIJ, getSIJ } from "@/utils/api/sij";
 import {notifications} from "@mantine/notifications"
 import { nprogress } from "@mantine/nprogress";
 
 dayjs.locale("id");
 
-export default function TableView({ data }) {
+export default function TableView() {
   const [selectedCollapse, setSelectedCollapse] = useState(null);
   const [checkedRows, setCheckedRows] = useState([]);
   const [opened, setOpened] = useState(false);
@@ -35,8 +35,29 @@ export default function TableView({ data }) {
   const [search, setSearch] = useState("");
   const [ssPreview, setSsPreview] = useState(null);
   const [page, setPage] = useState(1);
-  const [filteredData, setFilteredData] = useState(data);
+  const [filteredData, setFilteredData] = useState([]);
   const [dateFilter, setDateFilter] = useState(null);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const fetchData = async (date) => {
+      setLoading(true);
+      nprogress.start()
+      try {
+         const formattedDate = dayjs(date).format("YYYY-MM-DD");
+          const data = await getSIJ(formattedDate);
+          setData(data.drivers);
+      } catch (err) {
+          console.error("Gagal ambil data driver:", err);
+      } finally {
+          setLoading(false);
+          nprogress.complete()
+      }
+  };
+      useEffect(() => {
+          fetchData(selectedDate);
+      }, []);
 
   const itemsPerPage = 10;
 
@@ -47,31 +68,41 @@ export default function TableView({ data }) {
 
   // Filter data (pencarian + tanggal)
   useEffect(() => {
-    let newData = [...data];
+    const searchText = search.toLowerCase().trim()
 
-    if (search.trim()) {
-      newData = newData.filter(
-        (d) =>
-          d.no_pol.toLowerCase().includes(search.toLowerCase()) ||
-          d.nama.toLowerCase().includes(search.toLowerCase())
-      );
-    }
+     const filtered = data?.filter((d) => {
+          const nama = d?.nama?.toLowerCase() || "";
+          const plat = d?.no_pol?.toLowerCase() || "";
+          
+          const matchSearch =
+            nama.includes(searchText) ||
+            plat.includes(searchText)
+    
+          let matchDate = true;
+          if (dateFilter && d?.sij?.createdAt) {
+            matchDate =
+              dayjs(d.createdAt).format("YYYY-MM-DD") ===
+              dayjs(dateFilter).format("YYYY-MM-DD");
+          }
+    
+          return matchSearch
+        });
 
-    if (dateFilter) {
-      const selectedDate = dayjs(dateFilter).startOf("day");
-      newData = newData
-        .map((d) => ({
-          ...d,
-          sij: d.sij?.filter((s) =>
-            dayjs(s.createdAt).isSame(selectedDate, "day")
-          ),
-        }))
-        .filter((d) => d.sij && d.sij.length > 0);
-    }
+    // if (dateFilter) {
+    //   const selectedDate = dayjs(dateFilter).startOf("day");
+    //   data = data
+    //     .map((d) => ({
+    //       ...d,
+    //       sij: d.sij?.filter((s) =>
+    //         dayjs(s.createdAt).isSame(selectedDate, "day")
+    //       ),
+    //     }))
+    //     .filter((d) => d.sij && d.sij.length > 0);
+    // }
 
-    setFilteredData(newData);
+    setFilteredData(filtered);
     setPage(1);
-  }, [search, data, dateFilter]);
+  }, [search, data]);
 
   // Pagination
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -168,10 +199,13 @@ export default function TableView({ data }) {
         <DatePickerInput
           placeholder="Pilih tanggal"
           locale="id"
-          value={dateFilter}
-          onChange={setDateFilter}
+          value={selectedDate}
+          onChange={(val) => {
+            setSelectedDate(val);
+            fetchData(val);
+          }}
           valueFormat="DD MMMM YYYY"
-          clearable
+          clearable={false}
         />
 
         <Group>

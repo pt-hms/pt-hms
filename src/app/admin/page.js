@@ -8,6 +8,7 @@ import { DatePickerInput } from "@mantine/dates";
 import GlobalLoader from "@/components/GlobalLoader";
 import dayjs from "dayjs";
 import "dayjs/locale/id";
+import { nprogress } from "@mantine/nprogress"
 
 dayjs.locale("id");
 
@@ -20,6 +21,7 @@ export default function Page() {
 
   const fetchData = async (date) => {
     setLoading(true);
+    nprogress.start()
     try {
       // format tanggal untuk request
       const formattedDate = dayjs(date).format("YYYY-MM-DD");
@@ -51,6 +53,7 @@ export default function Page() {
       setPreviewText("Gagal memuat data laporan.");
     } finally {
       setLoading(false);
+      nprogress.complete()
     }
   };
 

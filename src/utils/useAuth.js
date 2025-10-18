@@ -1,22 +1,52 @@
+"use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 import axiosInstance from "./axios";
 
-// --- AUTH UTILS ---
+// ======================
+// AUTH UTILS
+// ======================
 
+// Fungsi login user dan simpan token di cookie
 export async function loginUser(no_pol, password) {
-    const res = await axiosInstance.post("/login", { no_pol, password }, {
-        headers: {
-            "Content-Type": "application/json",
+    const res = await axiosInstance.post(
+        "/login",
+        { no_pol, password },
+        {
+            headers: { "Content-Type": "application/json" },
         }
-    },);
-    const data = res.data;
+    );
 
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.driver));
+    const data = res.data;
+    const token = data.token;
+    const user = data.driver;
+
+    // Hitung waktu menuju tengah malam (jam 00:00)
+    const now = new Date();
+    const midnight = new Date();
+    midnight.setHours(24, 0, 0, 0);
+
+    // Simpan token ke cookie
+    Cookies.set("token", token, {
+        expires: new Date(midnight),
+        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production", // hanya aktif di HTTPS
+        path: "/",
+    });
+
+    // Simpan user ke cookie
+    Cookies.set("user", JSON.stringify(user), {
+        expires: new Date(midnight),
+        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+    });
+
     return data;
 }
 
+// Fungsi register user
 export async function registerUser(formData) {
     const res = await axiosInstance.post("/register", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -24,19 +54,22 @@ export async function registerUser(formData) {
     return res.data;
 }
 
+// Fungsi logout
 export function logoutUser() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    Cookies.remove("token", { path: "/" });
+    Cookies.remove("user", { path: "/" });
 }
 
+// Ambil data user dari cookie
 export function getUser() {
     if (typeof window === "undefined") return null;
-    const user = localStorage.getItem("user");
-    return user ? JSON.parse(user) : null;
+    const userCookie = Cookies.get("user");
+    return userCookie ? JSON.parse(userCookie) : null;
 }
 
-
-// --- HOOK UNTUK PROTEKSI ROUTE ---
+// ======================
+// HOOK PROTEKSI ROUTE
+// ======================
 
 export function useAuth(role = null) {
     const router = useRouter();
@@ -44,7 +77,7 @@ export function useAuth(role = null) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
+        const token = Cookies.get("token");
         const userData = getUser();
 
         if (!token || !userData) {
@@ -54,18 +87,14 @@ export function useAuth(role = null) {
 
         const checkBuktiTF = async () => {
             try {
-                // Ambil status bukti_tf dari API /tf
                 const res = await axiosInstance.get(`/tf`);
-                const buktiTF = res.data.tf; // sesuaikan dengan response API\
-                console.log(buktiTF);
+                const buktiTF = res.data.tf;
 
-                // Jika driver belum upload bukti_tf → paksa ke /sij
                 if (userData.role === "driver" && !buktiTF) {
                     router.replace("/sij");
                     return;
                 }
 
-                // Cek role jika ada role spesifik
                 if (role && userData.role !== role) {
                     router.replace(userData.role === "admin" ? "/admin" : "/driver");
                     return;
@@ -75,30 +104,41 @@ export function useAuth(role = null) {
                 setLoading(false);
             } catch (err) {
                 console.error("Failed to check bukti_tf:", err);
-                router.replace("/"); // fallback redirect
+                router.replace("/");
             }
         };
 
         checkBuktiTF();
     }, [router, role]);
 
-    return { user, loading };
+    // 🔄 Auto logout real-time setiap 1 menit
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const token = Cookies.get("token");
+            if (!token) {
+                logoutUser();
+                router.replace("/");
+            }
+        }, 60 * 30000); // cek setiap 1 menit
 
+        return () => clearInterval(interval);
+    }, [router]);
+
+    return { user, loading };
 }
+
+// ======================
+// HOOK UNTUK GUEST
+// ======================
 
 export function useGuest() {
     const router = useRouter();
 
     useEffect(() => {
         const user = getUser();
-
         if (user) {
-            // Kalau sudah login → arahkan ke dashboard sesuai role
-            if (user.role === "driver") {
-                router.replace("/driver");
-            } else if (user.role === "admin") {
-                router.replace("/admin");
-            }
+            if (user.role === "driver") router.replace("/driver");
+            else if (user.role === "admin") router.replace("/admin");
         }
     }, [router]);
 }

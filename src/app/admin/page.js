@@ -26,11 +26,9 @@ export default function Page() {
       const res = await getDashboard(formattedDate); // misal backend: /dashboard?date=YYYY-MM-DD
       setData(res);
 
+
       if (res && Array.isArray(res.report)) {
         const today = dayjs(date).format("dddd, DD MMMM YYYY").toUpperCase();
-        let totalRides = 0;
-        let totalDAD = 0;
-
         let report = `*Flash Report*\n${today}\n\n_Daily Ritase by Hours_\nPT. ( HMS )\n\n`;
 
         res.report.forEach((d) => {
@@ -38,13 +36,10 @@ export default function Page() {
           report += `*GCA* Rides : ${d.rides}\n`;
           report += `*GCA* Daily Active Driver : ${d.dailyActiveDriver}\n`;
           report += `*GCA* Driver Standby : \n\n`;
-
-          totalRides += d.rides || 0;
-          totalDAD += d.dailyActiveDriver || 0;
         });
 
-        report += `*TOTAL DAD : ${totalDAD}\n*`;
-        report += `*TOTAL RIDES : ${totalRides}\n*`;
+        report += `*TOTAL DAD : ${res.total.totalDailyActiveDriver}\n*`;
+        report += `*TOTAL RIDES : ${res.total.totalRides}\n*`;
         report += `*STANDBY POOL : \n*`;
 
         setPreviewText(report);

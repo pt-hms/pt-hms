@@ -1,13 +1,13 @@
 import axios from "axios";
+import Cookies from "js-cookie";
 
-// Base URL backend kamu
 const axiosInstance = axios.create({
     baseURL: "https://api-pt-hms.vercel.app/api",
 });
 
-// Tambahkan token otomatis jika ada
+// Tambahkan token dari cookie secara otomatis
 axiosInstance.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token");
+    const token = Cookies.get("token");
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
 });

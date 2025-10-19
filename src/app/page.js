@@ -140,6 +140,7 @@ export default function page() {
           />
 
           {/* Tombol MASUK (Aksen Merah) */}
+
           <Button
             fullWidth
             color="#e10b16"
@@ -148,10 +149,10 @@ export default function page() {
             size="lg"
             radius="md"
             className="shadow-lg hover:shadow-xl transition duration-300"
+            disabled={loading}
           >
             Masuk
           </Button>
-
           {/* Tombol REGISTRASI (Subtle / Polos) */}
 
         </form>

@@ -431,7 +431,7 @@ const handleDelete = async (ids) => {
           setExportModal(false);
           setExportDate([null, null]);
         }}
-        title="Export Laporan Ritase"
+        title="Export Data Driver"
         size="md"
         centered
         radius="lg"

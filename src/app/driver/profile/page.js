@@ -7,10 +7,61 @@ import "dayjs/locale/id";
 import { getProfile } from "@/utils/api/profil";
 import { useEffect, useState } from "react";
 import { Loader } from "@mantine/core"
+import { useForm } from "@mantine/form";
 
 export default function page() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false)
+  const form = useForm({
+    initialValues: {
+      nama: "",
+      no_pol: "",
+      kategori: "",
+      mobil: "",
+      no_kep: "",
+      exp_kep: null,
+      no_hp: "",
+      no_darurat: "",
+      password: "",
+      foto_profil: null,
+    },
+    validate: {
+      nama: (value) => (!value.trim() ? "Nama wajib diisi" : null),
+      no_pol: (value) => (!value.trim() ? "Plat nomor wajib diisi" : null),
+      kategori: (value) => (!value.trim() ? "Kategori driver wajib diisi" : null),
+      mobil: (value) => (!value.trim() ? "Nama mobil wajib diisi" : null),
+      // no_kep: (value) => (!value.trim() ? "Nomor KEP wajib diisi" : null),
+      // exp_kep: (value) => (!value ? "Tanggal berlaku kartu wajib diisi" : null),
+      no_hp: (value) => {
+        const trimmed = value.trim();
+        if (!trimmed) return "Nomor telepon wajib diisi";
+        if (!/^[0-9]+$/.test(trimmed)) {
+          return "Nomor telepon hanya boleh berisi angka";
+        }
+        if (trimmed.length < 10 || trimmed.length > 15) {
+          return "Nomor telepon harus 10–15 digit";
+        }
+        return null;
+      },
+      no_darurat: (value) => {
+        const trimmed = value.trim();
+        if (!trimmed) return "Nomor telepon wajib diisi";
+        if (!/^[0-9]+$/.test(trimmed)) {
+          return "Nomor telepon hanya boleh berisi angka";
+        }
+        if (trimmed.length < 10 || trimmed.length > 15) {
+          return "Nomor telepon harus 10–15 digit";
+        }
+        return null;
+      },
+      password: (value) =>
+        (!data && !value.trim())
+          ? "Password wajib diisi"
+          : (value.trim().length > 0 && value.trim().length < 6)
+            ? "Password minimal 6 karakter"
+            : null,
+    },
+  });
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);

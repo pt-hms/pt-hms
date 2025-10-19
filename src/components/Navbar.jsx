@@ -8,8 +8,8 @@ export default function BottomNavbar() {
 
   const navItems = [
     { href: "/driver/history", icon: "material-symbols:history-rounded", label: "Riwayat" },
-    { href: "/driver/print", icon: "material-symbols:print-outline-rounded", label: "Cetak" },
-    { href: "/driver", icon: "material-symbols:upload", label: "Unggah" },
+    { href: "/driver", icon: "material-symbols:print-outline-rounded", label: "Cetak" },
+    { href: "/driver/ritase", icon: "material-symbols:upload", label: "Unggah" },
     { href: "/driver/profile", icon: "iconamoon:profile-fill", label: "Akun" },
   ];
 

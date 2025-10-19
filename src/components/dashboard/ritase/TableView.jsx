@@ -408,7 +408,7 @@ const [exportMode, setExportMode] = useState(""); // atau "range"
        <Modal
                 opened={!!ssPreview}
                 onClose={() => setSsPreview(null)}
-                title="Bukti Transfer"
+                title="Screenshot Order"
                 size="md"
                 centered
                 radius="lg"

@@ -67,6 +67,7 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
       // Jika sedang EDIT → hanya kirim field no_pol, pickup, tujuan
       if (data) {
         formData.append("no_pol", values.no_pol);
+        formData.append("argo", values.argo);
         formData.append("pickup_point", values.pickup_point);
         formData.append("tujuan", values.tujuan);
         if (values.tanggal_jam) {

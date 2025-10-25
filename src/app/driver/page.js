@@ -73,7 +73,7 @@ export default function print() {
 
                     // Cetak text
                     await print.writeText("Surat Ijin Jalan", { align: "center", bold: true });
-                    await print.writeText("PT HMS (Helmi Mandiri Sukses)", { align: "center", bold: true });
+                    await print.writeText("PT HMS (Helmi Mandiri Sukses)", { align: "center", bold: true, size: "double" });
                     await print.writeText("Grabcar Airport", { align: "center" });
                     await print.writeText("Bandara Soekarno - Hatta", { align: "center" });
                     await print.writeText(`Nama: ${profile?.nama}`, { align: "center" });
@@ -86,6 +86,8 @@ export default function print() {
                     await print.writeText("DISIPLIN & PATUHI SOP", { align: "center" });
                     await print.writeLineBreak();
                     await print.writeText("Terima Kasih", { align: "center" });
+                    await print.writeLineBreak();
+                    await print.writeText("SIJ ini di print dari PT HMS App", { align: "center", bold: true });
                     await print.writeLineBreak();
                     await print.writeLineBreak();
                     await print.writeLineBreak();

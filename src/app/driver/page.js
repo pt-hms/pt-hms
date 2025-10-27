@@ -72,7 +72,7 @@ export default function print() {
                     statusElement.textContent = "Printing...";
 
                     // Cetak text
-                    await print.writeText("SURAT IJIN JALAN", { align: "center", bold: true });
+                    await print.writeText("SURAT IZIN JALAN", { align: "center", bold: true });
                     await print.writeText("PT HMS", { align: "center", bold: true, size: "double" });
                     await print.writeText("HELMI MANDIRI SUKSES", { align: "center", bold: true });
                     await print.writeText("Grabcar Airport", { align: "center" });

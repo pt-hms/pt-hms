@@ -53,7 +53,7 @@ export default function page() {
     setLoading(true);
     try {
       const data = await loginUser(values.plat, values.password);
-      router.push(data.driver.role === "admin" ? "/admin" : "/driver");
+      router.push(data.driver.role === "admin" ? "/admin" : data.driver.role === "grab" ? "/grab" : "/driver");
     } catch (err) {
       notifications.show({
         title: "Login Gagal",

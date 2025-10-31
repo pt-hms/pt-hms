@@ -100,7 +100,7 @@ export default function DashboardNavbar({
           </Menu.Target>
 
           <Menu.Dropdown>
-            <Menu.Label>
+            {/* <Menu.Label>
               <div className="flex gap-2 items-center">
                 <NextImage
                   src="/profil.jpeg"
@@ -118,17 +118,17 @@ export default function DashboardNavbar({
                   </Text>
                 </div>
               </div>
-            </Menu.Label>
+            </Menu.Label> */}
 
-            <Menu.Divider />
+            {/* <Menu.Divider /> */}
 
             {/* Menu items */}
-            <Menu.Item>
+            {/* <Menu.Item>
               <Flex align="center" gap={8}>
                 <Icon icon="mdi:account-circle-outline" width={22} color="grey" />
                 <div>Profile</div>
               </Flex>
-            </Menu.Item>
+            </Menu.Item> */}
 
             <Menu.Item onClick={handleLogout}>
               <Flex align="center" gap={8}>

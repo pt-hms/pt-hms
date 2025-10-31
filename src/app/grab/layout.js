@@ -2,7 +2,7 @@
 import { AppShell, Loader } from '@mantine/core'
 import React, { useEffect, useState } from 'react'
 import DashboardNavbar from '@/components/dashboard/DashboardNavbar'
-import Sidebar from '@/components/dashboard/Sidebar'
+import Sidebar from '@/components/dashboard/SidebarGrab'
 import { useDisclosure, useHotkeys } from "@mantine/hooks";
 import Head from "next/head";
 import { usePathname } from 'next/navigation'
@@ -23,8 +23,7 @@ export default function Dashboard({ children, title }) {
     }
 
     const pageTitle = {
-        "/grab": "Dashboard",
-        "/grab/order": "Riwayat Ritase",
+        "/grab": "Dashboard"
     }[pathname] || "PT HMS";
     return (
         <AppShell

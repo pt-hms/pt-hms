@@ -71,10 +71,12 @@ export default function print() {
                     statusElement.textContent = "Printing...";
 
                     // Cetak text
-                    await print.writeText("Surat Ijin Jalan", { align: "center", bold: true });
-                    await print.writeText("PT HMS (Helmi Mandiri Sukses)", { align: "center", bold: true });
+                    await print.writeText("SURAT IZIN JALAN", { align: "center", bold: true });
+                    await print.writeText("PT HMS", { align: "center", bold: true, size: "double" });
+                    await print.writeText("HELMI MANDIRI SUKSES", { align: "center", bold: true });
                     await print.writeText("Grabcar Airport", { align: "center" });
                     await print.writeText("Bandara Soekarno - Hatta", { align: "center" });
+                    await print.writeDashLine();
                     await print.writeText(`Nama: ${profile?.nama}`, { align: "center" });
                     await print.writeText(`No Pol: ${profile?.no_pol}`, { align: "center" });
                     await print.writeText(`Kategori: ${profile?.kategori}`, { align: "center" });
@@ -83,8 +85,8 @@ export default function print() {
                     await print.writeText(`${nextSij}`, { align: "center", bold: true, size: "double" });
                     await print.writeDashLine();
                     await print.writeText("DISIPLIN & PATUHI SOP", { align: "center" });
-                    await print.writeLineBreak();
-                    await print.writeText("Terima Kasih", { align: "center" });
+                    await print.writeText("TERIMA KASIH", { align: "center" });
+                    await print.writeText("PT HMS App", { align: "center", bold: true });
                     await print.writeLineBreak();
                     await print.writeLineBreak();
                     await print.writeLineBreak();

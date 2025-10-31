@@ -402,7 +402,7 @@ export default function TableView() {
        <Modal
                 opened={!!ssPreview}
                 onClose={() => setSsPreview(null)}
-                title="Bukti Ritase"
+                title="Screenshot Order"
                 size="md"
                 centered
                 radius="lg"

@@ -136,7 +136,6 @@ const openDeleteConfirm = (ids) => {
 const handleDelete = async (ids) => {
   try {
     const idArray = Array.isArray(ids) ? ids : [ids];
-    console.log("Menghapus ID:", idArray);
     nprogress.start();
     // Kirim array ID ke API
     const res = await deleteDriver(idArray);

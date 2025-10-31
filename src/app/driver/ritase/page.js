@@ -37,7 +37,6 @@ export default function Page() {
       // Buat FormData
       const formData = new FormData();
       formData.append("ss_order", file);
-      console.log(formData.get("ss_order"));
 
       // Panggil API upload
       await uploadRitase(formData);

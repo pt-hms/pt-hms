@@ -60,9 +60,6 @@ export default function SIJModal({ opened, onClose, data, plat, onSubmit }) {
     }
   }, [data]);
 
-  console.log(form);
-  
-
   const handleSubmit = (values) => {
     try {
       nprogress.start();

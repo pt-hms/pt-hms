@@ -56,8 +56,6 @@ export default function RitaseModal({ opened, onClose, data, plat, onSubmit }) {
     }
   }, [data,opened]);
 
-  console.log(data);
-  console.log(form.values);
 
   const handleSubmit = async (values) => {
     try {

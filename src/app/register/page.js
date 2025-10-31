@@ -166,7 +166,6 @@ export default function Page() {
 
     const handleSubmit = async (values) => {
         setLoading(true);
-        console.log(values);
 
         try {
             const formData = new FormData();

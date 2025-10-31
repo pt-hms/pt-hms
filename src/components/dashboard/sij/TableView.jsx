@@ -116,9 +116,6 @@ export default function TableView() {
     setSelectedCollapse(selectedCollapse === id ? null : id);
   };
 
-  console.log(paginatedData);
-  
-
   // Konfirmasi hapus
   const openDeleteConfirm = (ids) => {
     modals.openConfirmModal({
@@ -146,8 +143,6 @@ export default function TableView() {
     const idArray = Array.isArray(ids) ? ids : [ids];
 
     const res = await deleteSIJ(idArray);
-    console.log("Berhasil menghapus di server:", res);
-
     // Hanya update UI jika server berhasil
     setFilteredData((prev) =>
       prev.map((d) => ({

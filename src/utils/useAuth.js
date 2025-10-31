@@ -97,7 +97,7 @@ export function useAuth(role = null) {
                 }
 
                 if (role && userData.role !== role) {
-                    router.replace(userData.role === "admin" ? "/admin" : "/driver");
+                    router.replace(userData.role === "admin" ? "/admin" : userData.role === "grab" ? "/grab" : "/driver");
                     return;
                 }
 

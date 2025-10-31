@@ -42,7 +42,6 @@ export default function Page() {
             // Buat FormData
             const formData = new FormData();
             formData.append("bukti_tf", file);
-            console.log(formData.get("bukti_tf"));
 
             // Panggil API upload
             await uploadTF(formData);

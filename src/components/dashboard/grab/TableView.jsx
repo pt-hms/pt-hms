@@ -17,11 +17,8 @@ import {
 } from "@mantine/core";
 import { DatePickerInput } from "@mantine/dates";
 import { Icon } from "@iconify/react";
-import RitaseModal from "./RitaseModal";
 import { modals } from "@mantine/modals";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
 import "dayjs/locale/id";
 import { exportToExcel } from "@/components/Export";
 import { deleteRitase, getAllRitase } from "@/utils/api/ritase";
@@ -29,12 +26,6 @@ import { nprogress } from "@mantine/nprogress";
 import { notifications } from "@mantine/notifications";
 import { getDriver } from "@/utils/api/driver";
 import { downloadRitaseExcel } from "@/utils/api/export";
-
-// 🕒 Setup timezone Indonesia (WIB)
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.locale("id");
-dayjs.tz.setDefault("Asia/Jakarta");
 
 export default function TableView() {
   const [selectedRow, setSelectedRow] = useState(null);
@@ -46,21 +37,24 @@ export default function TableView() {
   const [page, setPage] = useState(1);
   const [filteredData, setFilteredData] = useState([]);
   const [timeFilter, setTimeFilter] = useState(null);
-  const [dateFilter, setDateFilter] = useState(null);
+  const [dateFilter, setDateFilter] = useState(null); // ⬅️ Tanggal filter (range)
   const [data, setData] = useState([]);
   const [driver, setDriver] = useState([]);
   const [loading, setLoading] = useState(true);
   const [exportModal, setExportModal] = useState(false);
-  const [exportDate, setExportDate] = useState([null, null]);
-  const [exportMode, setExportMode] = useState("");
+const [exportDate, setExportDate] = useState([null, null]);
+const [exportMode, setExportMode] = useState(""); // atau "range"
+
+
+
 
   const itemsPerPage = 10;
 
-  // 🔄 Fetch data
+  // Fetch data ritase
   const fetchData = async () => {
     try {
       setLoading(true);
-      nprogress.start();
+      nprogress.start()
       const res = await getAllRitase();
       const dr = await getDriver();
       setData(res.ritase);
@@ -68,7 +62,7 @@ export default function TableView() {
     } catch (err) {
       console.error("Gagal ambil data driver:", err);
     } finally {
-      nprogress.complete();
+      nprogress.complete()
       setLoading(false);
     }
   };
@@ -79,15 +73,14 @@ export default function TableView() {
 
   const normalizedData = Array.isArray(data) ? data : [];
 
-  // 🕓 List jam 07:00 - 23:00
+  // Jam filter (07:00 - 23:00)
   const hours = Array.from({ length: 18 }, (_, i) => {
     const hour = 7 + i;
     const label = `${hour.toString().padStart(2, "0")}:00`;
     return { value: label, label };
   });
 
-  // 🔍 Filtering data berdasarkan search, jam, dan tanggal
-  useEffect(() => {
+   useEffect(() => {
     const searchText = search.toLowerCase().trim();
 
     const filtered = data?.filter((d) => {
@@ -104,17 +97,16 @@ export default function TableView() {
 
       let matchTime = true;
       if (timeFilter && d?.createdAt) {
-        const dataHour = dayjs(d.createdAt).tz("Asia/Jakarta").format("HH");
+        const dataHour = dayjs(d.createdAt).format("HH");
         const filterHour = timeFilter.split(":")[0];
         matchTime = dataHour === filterHour;
       }
 
       let matchDate = true;
       if (dateFilter && d?.createdAt) {
-        const created = dayjs(d.createdAt).tz("Asia/Jakarta");
-        const filterDate = dayjs(dateFilter).tz("Asia/Jakarta");
         matchDate =
-          created.format("YYYY-MM-DD") === filterDate.format("YYYY-MM-DD");
+          dayjs(d.createdAt).format("YYYY-MM-DD") ===
+          dayjs(dateFilter).format("YYYY-MM-DD");
       }
 
       return matchSearch && matchTime && matchDate;
@@ -195,12 +187,23 @@ export default function TableView() {
     label: item.no_pol,
   }));
 
-  const excludeDate = (date) => {
-    if (!exportDate[0]) return false;
-    const start = dayjs(exportDate[0]);
-    const diff = dayjs(date).diff(start, "day");
-    return diff > 7 || diff < 0;
+  const headers = {
+    id: "No",
+    name: "Nama Driver",
+    plate: "Plat Nomor",
+    category: "Kategori",
+    destination: "Tujuan",
+    pickup: "Titik Jemput",
+    date: "Tanggal",
+    time: "Jam",
   };
+
+   const excludeDate = (date) => {
+      if (!exportDate[0]) return false;
+      const start = dayjs(exportDate[0]);
+      const diff = dayjs(date).diff(start, "day");
+      return diff > 7 || diff < 0;
+    };
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -238,23 +241,13 @@ export default function TableView() {
         />
 
         <Group>
-          <Button
+          {/* <Button
             color="yellow"
             leftSection={<Icon icon="mdi:download" />}
             onClick={() => setExportModal(true)}
           >
             Unduh
-          </Button>
-          <Button
-            color="orange"
-            leftSection={<Icon icon="mdi:plus" />}
-            onClick={() => {
-              setEditData(null);
-              setOpened(true);
-            }}
-          >
-            Tambah
-          </Button>
+          </Button> */}
         </Group>
       </Group>
 
@@ -278,33 +271,7 @@ export default function TableView() {
         <Table striped highlightOnHover withColumnBorders>
           <Table.Thead className="bg-gray-50">
             <Table.Tr>
-              <Table.Th>
-                <Checkbox
-                  checked={
-                    paginatedData.length > 0 &&
-                    paginatedData.every((row) => checkedRows.includes(row.id))
-                  }
-                  indeterminate={
-                    paginatedData.some((row) => checkedRows.includes(row.id)) &&
-                    !paginatedData.every((row) => checkedRows.includes(row.id))
-                  }
-                  onChange={(e) => {
-                    if (e.currentTarget.checked) {
-                      setCheckedRows((prev) => [
-                        ...new Set([...prev, ...paginatedData.map((d) => d.id)]),
-                      ]);
-                    } else {
-                      setCheckedRows((prev) =>
-                        prev.filter(
-                          (id) =>
-                            !paginatedData.map((d) => d.id).includes(id)
-                        )
-                      );
-                    }
-                  }}
-                />
-              </Table.Th>
-              <Table.Th>NAMA</Table.Th>
+             <Table.Th>NAMA</Table.Th>
               <Table.Th>PLAT</Table.Th>
               <Table.Th>JENIS</Table.Th>
               <Table.Th>ARGO</Table.Th>
@@ -319,12 +286,6 @@ export default function TableView() {
           <Table.Tbody>
             {paginatedData.map((row, i) => (
               <Table.Tr key={row.id}>
-                <Table.Td>
-                  <Checkbox
-                    checked={checkedRows.includes(row.id)}
-                    onChange={() => toggleCheck(row.id)}
-                  />
-                </Table.Td>
                 <Table.Td>{row.user.nama}</Table.Td>
                 <Table.Td>{row.user.no_pol}</Table.Td>
                 <Table.Td>
@@ -358,18 +319,6 @@ export default function TableView() {
                                             >
                                               <Icon icon="mdi:image-outline" width={18} />
                                             </Button>
-                    <Button
-                      variant="subtle"
-                      color="blue"
-                      radius="xl"
-                      size="xs"
-                      onClick={() => {
-                        setEditData(row);
-                        setOpened(true);
-                      }}
-                    >
-                      <Icon icon="mdi:open-in-new" width={18} />
-                    </Button>
                   </Group>
                 </Table.Td>
               </Table.Tr>
@@ -390,19 +339,10 @@ export default function TableView() {
           </Group>
         )}
       </Box>
-
-      <RitaseModal
-        opened={opened}
-        onClose={() => setOpened(false)}
-        data={editData}
-        plat={platNo}
-        onSubmit={handleSubmit}
-        closeOnClickOutside={false}
-      />
        <Modal
                 opened={!!ssPreview}
                 onClose={() => setSsPreview(null)}
-                title="Bukti Ritase"
+                title="Bukti Transfer"
                 size="md"
                 centered
                 radius="lg"

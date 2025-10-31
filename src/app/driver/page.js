@@ -17,12 +17,10 @@ export default function print() {
     const [profile, setProfile] = useState(null);
     const [buktiTF, setBuktiTF] = useState(null);
     const [loading, setLoading] = useState(false)
+    const [uploading, setUploading] = useState(false)
 
     const now = dayjs();
     const formatted = now.format("dddd DD/MM/YY HH:mm:ss");
-
-    console.log(formatted);
-    // Contoh output: "Jumat 10/10/25 22:40:24"
 
     useEffect(() => {
         const fetchData = async () => {
@@ -63,6 +61,7 @@ export default function print() {
             return;
         }
 
+        setUploading(true);
         let printer = new PrintPlugin("58mm");
 
         printer.connectToPrint({
@@ -112,6 +111,7 @@ export default function print() {
                         color: "green",
                         autoClose: 3000,
                     });
+                    setUploading(false);
 
                 } catch (error) {
                     console.error("Printing failed:", error);
@@ -123,6 +123,7 @@ export default function print() {
                 console.error("Printer connection failed:", message);
                 statusElement.style.color = "#333";
                 statusElement.textContent = `Failed: ${message}`;
+                setUploading(false);
             },
         });
     };
@@ -135,8 +136,6 @@ export default function print() {
             </div>
         );
     }
-
-    console.log(data);
 
     return (
         <Container size="xs" style={{ minHeight: "100vh", display: "flex", alignItems: "center" }}>
@@ -172,6 +171,7 @@ export default function print() {
                     size="lg"
                     radius="md"
                     onClick={handleConnectAndPrint}
+                    disabled={uploading}
                 >
                     Cetak
                 </Button>

@@ -120,10 +120,10 @@ export default function Page() {
       <div className="fixed left-2 top-0 p-2" onClick={fetchData}>
         <Button
           color="blue"
-          leftSection={<Icon icon="material-symbols:refresh-rounded" height={24} width={24} />}
+          leftSection={<Icon icon="material-symbols:refresh-rounded" height={20} width={20} />}
           onClick={fetchData}
           loading={loading}
-          size="md"
+          size="sm"
         >
           Refresh
         </Button>
@@ -178,12 +178,13 @@ export default function Page() {
                   </span>
                   <div className="flex-1 bg-white h-10 rounded-lg relative overflow-hidden border border-gray-200">
                     <div
-                      className="h-full transition-all duration-500 bg-gradient-to-r from-[#e10b16] to-[#ff4d4d] shadow-md"
+                      className="h-full transition-all duration-500 bg-gradient-to-r from-[#e10b16] to-[#ff4d4d] shadow-md flex justify-center items-center text-center"
                       style={{ width: `${(item.jumlah / max) * 100}%` }}
-                    ></div>
-                    <span className="absolute inset-0 flex justify-center items-center text-white font-semibold text-sm">
-                      {item.jumlah}
-                    </span>
+                    >
+                      <span className="text-white font-semibold text-sm">
+                        {item.jumlah}
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))}

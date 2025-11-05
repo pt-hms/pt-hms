@@ -2,7 +2,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 const axiosInstance = axios.create({
-    baseURL: process.env.API_URL || "https://api.pt-hms.com/api",
+    baseURL: process.env.API_URL || 'https://apipthms.vercel.app/' || "https://api.pt-hms.com/api",
 });
 
 // Tambahkan token dari cookie secara otomatis
